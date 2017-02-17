@@ -30878,10 +30878,7 @@ initial_messages = [
   {
     _id: 0,
     sender: 'maia',
-    body: "Hi there, I am Maia. You can call me @maia. I know how to do a few useful things... like \"turn on the office light\" or \"turn off all the lights\"",
-    response: {
-      on: true
-    }
+    body: "Hi there, I am Maia. You can call me @maia. I know how to do a few useful things... like \"turn on the office light\" or \"turn off all the lights\""
   }
 ];
 
