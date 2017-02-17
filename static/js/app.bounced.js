@@ -30907,6 +30907,7 @@ sent_message$.onValue(function(message) {
       sender: 'maia'
     });
     return somata.remote('sample', 'sample', message.body, function(err, sampled) {
+      console.log('[sampled]', sampled);
       if (err != null) {
         message = {
           body: "Oh no... " + err

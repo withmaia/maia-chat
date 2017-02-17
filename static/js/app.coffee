@@ -38,6 +38,7 @@ sent_message$.onValue (message) ->
     setTimeout ->
         messages$.createItem {_id: ii, sender: 'maia'}
         somata.remote 'sample', 'sample', message.body, (err, sampled) ->
+            console.log '[sampled]', sampled
             if err?
                 message = {body: "Oh no... " + err}
             else
