@@ -1,0 +1,21 @@
+{
+  "name": "maia-ui",
+  "scripts": {
+    "bounce": "metaserve --bounce /js/app.js && metaserve --bounce /css/app.css"
+  },
+  "dependencies": {
+    "kefir": "^3.7.1",
+    "kefir-bus": "^2.2.1",
+    "kefir-collection": "^0.1.8",
+    "kefir-fetch": "^0.1.12",
+    "polar": "^0.2.11",
+    "react": "^15.4.2",
+    "react-addons-css-transition-group": "^15.4.2",
+    "react-contenteditable": "^2.0.2",
+    "react-dom": "^15.4.2",
+    "react-string-replace": "^0.4.0",
+    "somata": "^0.2.6",
+    "somata-socketio": "0.0.11",
+    "somata-socketio-client": "0.0.1"
+  }
+}
