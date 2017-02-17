@@ -42,7 +42,7 @@ sent_message$.onValue (message) ->
             if err?
                 message = {body: "Oh no... " + err}
             else
-                message = sampled
+                message = {body: sampled.response}
             messages$.updateItem ii, message
     , 200
 
@@ -118,9 +118,9 @@ App = React.createClass
                     }
                     {if !message.body?
                         <em className='pending'>...</em>
-                    else if message.response
+                    else if typeof message.body == 'object'
                         <pre>
-                            {JSON.stringify message.response}
+                            {JSON.stringify message.body}
                         </pre>
                     else
                         message.body.split('\n').map (line, li) =>

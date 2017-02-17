@@ -30913,7 +30913,9 @@ sent_message$.onValue(function(message) {
           body: "Oh no... " + err
         };
       } else {
-        message = sampled;
+        message = {
+          body: sampled.response
+        };
       }
       return messages$.updateItem(ii, message);
     });
@@ -31022,7 +31024,7 @@ App = React.createClass({
           "src": '/images/human.png'
         })), (message.body == null ? React.createElement("em", {
           "className": 'pending'
-        }, "...") : message.response ? React.createElement("pre", null, JSON.stringify(message.response)) : message.body.split('\n').map(function(line, li) {
+        }, "...") : typeof message.body === 'object' ? React.createElement("pre", null, JSON.stringify(message.body)) : message.body.split('\n').map(function(line, li) {
           var replaced;
           return React.createElement("p", {
             "key": 'li_' + li
