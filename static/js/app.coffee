@@ -7,7 +7,8 @@ ReactCSSTransitionGroup = require 'react-addons-css-transition-group'
 KefirBus = require 'kefir-bus'
 KefirCollection = require 'kefir-collection'
 
-somata.subscribe 'reloader', 'reload', -> window.location = window.location
+if config.debug?
+    somata.subscribe 'reloader', 'reload', -> window.location = window.location
 
 initial_messages = [
     {
@@ -118,9 +119,9 @@ App = React.createClass
                     {if !message.body?
                         <em className='pending'>...</em>
                     else if message.response
-                        <p>
-                            <pre>{JSON.stringify message.response}</pre>
-                        </p>
+                        <pre>
+                            {JSON.stringify message.response}
+                        </pre>
                     else
                         message.body.split('\n').map (line, li) =>
                             <p key={'li_' + li}>
