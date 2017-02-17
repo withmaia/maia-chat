@@ -30868,9 +30868,11 @@ KefirBus = require('kefir-bus');
 
 KefirCollection = require('kefir-collection');
 
-somata.subscribe('reloader', 'reload', function() {
-  return window.location = window.location;
-});
+if (config.debug != null) {
+  somata.subscribe('reloader', 'reload', function() {
+    return window.location = window.location;
+  });
+}
 
 initial_messages = [
   {
@@ -31022,7 +31024,7 @@ App = React.createClass({
           "src": '/images/human.png'
         })), (message.body == null ? React.createElement("em", {
           "className": 'pending'
-        }, "...") : message.response ? React.createElement("p", null, React.createElement("pre", null, JSON.stringify(message.response))) : message.body.split('\n').map(function(line, li) {
+        }, "...") : message.response ? React.createElement("pre", null, JSON.stringify(message.response)) : message.body.split('\n').map(function(line, li) {
           var replaced;
           return React.createElement("p", {
             "key": 'li_' + li
