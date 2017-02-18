@@ -14,7 +14,7 @@ app = polar config,
 
 app.get '/', (req, res) -> res.render 'index', {config}
 
-app.post '/command.json', (req, res) ->
+app.post '/sample.json', (req, res) ->
     client.remote 'sample', 'sample', req.body.command, (err, response) ->
         console.log 'response', response
         res.json response
