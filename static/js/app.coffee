@@ -1,21 +1,18 @@
 React = require 'react'
 ReactDOM = require 'react-dom'
 ReactContenteditable = require 'react-contenteditable'
-somata = require 'somata-socketio-client'
 reactStringReplace = require 'react-string-replace'
 ReactCSSTransitionGroup = require 'react-addons-css-transition-group'
 KefirBus = require 'kefir-bus'
+fetch$ = require 'kefir-fetch'
 KefirCollection = require 'kefir-collection'
-
-if config.debug?
-    somata.subscribe 'reloader', 'reload', -> window.location = window.location
 
 initial_messages = [
     {
         _id: 0
         sender: 'maia'
         body: """
-            Hi there, I am Maia. You can call me @maia. I know how to do a few useful things... like "turn on the office light" or "turn off all the lights"
+            Hi there, I am Maia. You can call me @maia. I know how to do a few useful things, like "turn on the office light" or "turn off all the lights" or answer "what is the price of bitcoin?"
         """
     }
 ]
@@ -30,6 +27,9 @@ sendMessage = (m) ->
         body: m
     }
 
+postCommand = (command, cb) ->
+    fetch$ 'post', 'http://withmaia.com/sample.json', {body: {command}}
+
 ii = 1
 
 sent_message$.onValue (message) ->
@@ -37,7 +37,7 @@ sent_message$.onValue (message) ->
     messages$.createItem message
     setTimeout ->
         messages$.createItem {_id: ii, sender: 'maia'}
-        somata.remote 'sample', 'sample', message.body, (err, sampled) ->
+        postCommand message.body, (err, sampled) ->
             console.log '[sampled]', sampled
             if err?
                 message = {body: "Oh no... " + err}
@@ -118,7 +118,7 @@ App = React.createClass
                     }
                     {if !message.body?
                         <em className='pending'>...</em>
-                    else if typeof message.body == 'object'
+                    else if typeof message.body != 'string'
                         <pre>
                             {JSON.stringify message.body}
                         </pre>
