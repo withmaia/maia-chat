@@ -14,8 +14,6 @@
     "react-contenteditable": "^2.0.2",
     "react-dom": "^15.4.2",
     "react-string-replace": "^0.4.0",
-    "somata": "^0.2.6",
-    "somata-socketio": "0.0.11",
-    "somata-socketio-client": "0.0.1"
+    "somata": "^0.2.6"
   }
 }
