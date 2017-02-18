@@ -33210,7 +33210,7 @@ module.exports = require('./lib/React');
 })(typeof self !== 'undefined' ? self : this);
 
 },{}],210:[function(require,module,exports){
-var App, KefirBus, KefirCollection, NewMessage, PlaceholderMessage, React, ReactCSSTransitionGroup, ReactContenteditable, ReactDOM, fetch$, ii, initial_messages, messages$, postCommand, reactStringReplace, sendMessage, sent_message$;
+var App, KefirBus, KefirCollection, NewMessage, PlaceholderMessage, React, ReactCSSTransitionGroup, ReactContenteditable, ReactDOM, fetch$, initial_messages, messages$, postCommand, reactStringReplace, sendMessage, sent_message$;
 
 React = require('react');
 
@@ -33244,7 +33244,7 @@ sent_message$ = KefirBus();
 
 sendMessage = function(m) {
   return sent_message$.emit({
-    _id: Math.floor(Math.random() * 9999 + 100),
+    _id: new Date().getTime(),
     sender: 'human',
     body: m
   });
@@ -33258,30 +33258,25 @@ postCommand = function(command, cb) {
   });
 };
 
-ii = 1;
-
 sent_message$.onValue(function(message) {
-  ii += 1;
+  var response_id;
   messages$.createItem(message);
-  return setTimeout(function() {
-    messages$.createItem({
-      _id: ii,
-      sender: 'maia'
-    });
-    return postCommand(message.body, function(err, sampled) {
-      console.log('[sampled]', sampled);
-      if (err != null) {
-        message = {
-          body: "Oh no... " + err
-        };
-      } else {
-        message = {
-          body: sampled.response
-        };
-      }
-      return messages$.updateItem(ii, message);
-    });
-  }, 200);
+  response_id = new Date().getTime() + 1;
+  messages$.createItem({
+    _id: response_id,
+    sender: 'maia'
+  });
+  return postCommand(message.body).onValue(function(sampled) {
+    console.log('[sampled]', sampled);
+    message = {
+      body: sampled.response
+    };
+    return messages$.updateItem(response_id, message);
+  }).onError(function(err) {
+    return message = {
+      body: "Oh no... " + err
+    };
+  });
 });
 
 messages$.createItem(initial_messages[0]);

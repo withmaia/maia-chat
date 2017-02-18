@@ -22,7 +22,7 @@ sent_message$ = KefirBus()
 
 sendMessage = (m) ->
     sent_message$.emit {
-        _id: Math.floor Math.random() * 9999 + 100
+        _id: new Date().getTime()
         sender: 'human'
         body: m
     }
@@ -30,21 +30,17 @@ sendMessage = (m) ->
 postCommand = (command, cb) ->
     fetch$ 'post', 'http://withmaia.com/sample.json', {body: {command}}
 
-ii = 1
-
 sent_message$.onValue (message) ->
-    ii += 1
     messages$.createItem message
-    setTimeout ->
-        messages$.createItem {_id: ii, sender: 'maia'}
-        postCommand message.body, (err, sampled) ->
+    response_id = new Date().getTime() + 1
+    messages$.createItem {_id: response_id, sender: 'maia'}
+    postCommand(message.body)
+        .onValue (sampled) ->
             console.log '[sampled]', sampled
-            if err?
-                message = {body: "Oh no... " + err}
-            else
-                message = {body: sampled.response}
-            messages$.updateItem ii, message
-    , 200
+            message = {body: sampled.response}
+            messages$.updateItem response_id, message
+        .onError (err) ->
+            message = {body: "Oh no... " + err}
 
 messages$.createItem initial_messages[0]
 
