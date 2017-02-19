@@ -35,12 +35,11 @@ sent_message$.onValue (message) ->
     response_id = new Date().getTime() + 1
     messages$.createItem {_id: response_id, sender: 'maia'}
     postCommand(message.body)
-        .onValue (sampled) ->
-            console.log '[sampled]', sampled
-            message = {body: sampled.response}
+        .onValue (message) ->
+            console.log '[message]', message
             messages$.updateItem response_id, message
         .onError (err) ->
-            message = {body: "Oh no... " + err}
+            message = {error: "Oh no... " + err}
 
 messages$.createItem initial_messages[0]
 
@@ -112,12 +111,15 @@ App = React.createClass
                     else
                         <img src='/images/human.png' />
                     }
-                    {if !message.body?
+                    {if not (message.body? or message.response?)
                         <em className='pending'>...</em>
-                    else if typeof message.body != 'string'
-                        <pre>
-                            {JSON.stringify message.body}
-                        </pre>
+                    else if message.response?
+                        <div>
+                            <span className='parsed'>{message.parsed.join(' ')}</span>
+                            <pre>
+                                {JSON.stringify message.response}
+                            </pre>
+                        </div>
                     else
                         message.body.split('\n').map (line, li) =>
                             <p key={'li_' + li}>

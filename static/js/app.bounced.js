@@ -33266,15 +33266,12 @@ sent_message$.onValue(function(message) {
     _id: response_id,
     sender: 'maia'
   });
-  return postCommand(message.body).onValue(function(sampled) {
-    console.log('[sampled]', sampled);
-    message = {
-      body: sampled.response
-    };
+  return postCommand(message.body).onValue(function(message) {
+    console.log('[message]', message);
     return messages$.updateItem(response_id, message);
   }).onError(function(err) {
     return message = {
-      body: "Oh no... " + err
+      error: "Oh no... " + err
     };
   });
 });
@@ -33379,9 +33376,11 @@ App = React.createClass({
           "src": '/images/maia.png'
         }) : React.createElement("img", {
           "src": '/images/human.png'
-        })), (message.body == null ? React.createElement("em", {
+        })), (!((message.body != null) || (message.response != null)) ? React.createElement("em", {
           "className": 'pending'
-        }, "...") : typeof message.body !== 'string' ? React.createElement("pre", null, JSON.stringify(message.body)) : message.body.split('\n').map(function(line, li) {
+        }, "...") : message.response != null ? React.createElement("div", null, React.createElement("span", {
+          "className": 'parsed'
+        }, message.parsed.join(' ')), React.createElement("pre", null, JSON.stringify(message.response))) : message.body.split('\n').map(function(line, li) {
           var replaced;
           return React.createElement("p", {
             "key": 'li_' + li

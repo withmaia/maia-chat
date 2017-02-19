@@ -24,6 +24,7 @@ html,
 body,
 #app {
   height: 100%;
+  overflow-x: hidden;
 }
 
 .spinner-container {
@@ -72,6 +73,12 @@ body,
 .message p + p,
 .new-message p + p {
   margin-top: 15px;
+}
+
+.message .parsed,
+.new-message .parsed {
+  font-weight: 500;
+  font-size: 13px;
 }
 
 .message pre,
