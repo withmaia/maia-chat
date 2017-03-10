@@ -78,6 +78,14 @@ a:hover {
   font-size: 13px;
 }
 
+.message .prob,
+.new-message .prob {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  color: #999;
+}
+
 .message pre,
 .new-message pre {
   font-family: "Menlo", "Monaco", monospace;

@@ -33897,10 +33897,13 @@ postCommand = function(command, cb) {
 };
 
 generateResponseBody = function(_arg) {
-  var body, context, entry, key, parsed, response, suffix;
-  response = _arg.response, parsed = _arg.parsed;
-  console.log('sampled response', response, parsed);
-  if (parsed[0] === 'weather') {
+  var body, context, entry, key, parsed, prob, response, suffix;
+  response = _arg.response, parsed = _arg.parsed, prob = _arg.prob;
+  console.log('sampled response', response, parsed, prob);
+  if (prob < -0.05) {
+    context = {};
+    entry = '%dontknow';
+  } else if (parsed[0] === 'weather') {
     if (key = parsed[3]) {
       context = {
         '$location': capitalize(unslugify(parsed[2]))
@@ -33962,7 +33965,8 @@ generateResponseBody = function(_arg) {
   return {
     response: response,
     parsed: parsed,
-    body: body
+    body: body,
+    prob: prob
   };
 };
 
@@ -34102,7 +34106,9 @@ App = React.createClass({
           }), replaced));
         }) : message.response != null ? React.createElement("div", null, React.createElement("span", {
           "className": 'parsed'
-        }, message.parsed.join(' ')), React.createElement("pre", null, JSON.stringify(message.response))) : void 0));
+        }, message.parsed.join(' ')), React.createElement("pre", null, JSON.stringify(message.response))) : void 0), (message.prob != null ? React.createElement("span", {
+          "className": 'prob'
+        }, message.prob.toFixed(2)) : void 0));
       };
     })(this))), React.createElement(NewMessage, null));
   }
@@ -34114,7 +34120,7 @@ ReactDOM.render(React.createElement(App, null), document.getElementById('app'));
 },{"./grammar":214,"kefir-bus":27,"kefir-collection":28,"kefir-fetch":31,"nalgene":217,"react":208,"react-addons-css-transition-group":43,"react-contenteditable":44,"react-dom":45,"react-string-replace":176}],214:[function(require,module,exports){
 var grammar;
 
-module.exports = grammar = "%fallback\n    I'm not sure what happened.\n\n%setState\n    I turned the $device $state .\n    I turned $state the $device .\n    the $device is now $state .\n    $devices are now $state .\n\n%gotState\n    the $device is $state .\n\n%gotTime\n    the time is $time .\n    it is $time .\n\n%gotPrice\n    the price of $asset is ~currently? $price .\n    $asset is ~currently? $price .\n\n%gotWeather\n    $location is ~currently? $temperature with $conditions .\n    the $location $key is ~currently? $value .\n    the $key of $location is ~currently? $value .\n\n~currently\n    currently\n\n~ok\n    ok,\n    sure,";
+module.exports = grammar = "%fallback\n    I'm not sure what happened.\n\n%dontknow\n    I don't understand.\n    I didn't catch that.\n    I don't know what you're saying.\n\n%setState\n    I turned the $device $state .\n    I turned $state the $device .\n    the $device is now $state .\n    $devices are now $state .\n\n%gotState\n    the $device is $state .\n\n%gotTime\n    the time is $time .\n    it is $time .\n\n%gotPrice\n    the price of $asset is ~currently? $price .\n    $asset is ~currently? $price .\n\n%gotWeather\n    $location is ~currently? $temperature with $conditions .\n    the $location $key is ~currently? $value .\n    the $key of $location is ~currently? $value .\n\n~currently\n    currently\n\n~ok\n    ok,\n    sure,";
 
 
 },{}],215:[function(require,module,exports){

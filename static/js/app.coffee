@@ -38,10 +38,14 @@ postCommand = (command, cb) ->
     fetch$ 'post', 'http://withmaia.com/sample.json', {body: {command}}
         .map generateResponseBody
 
-generateResponseBody = ({response, parsed}) ->
-    console.log 'sampled response', response, parsed
+generateResponseBody = ({response, parsed, prob}) ->
+    console.log 'sampled response', response, parsed, prob
 
-    if parsed[0] == 'weather'
+    if prob < -0.05
+        context = {}
+        entry = '%dontknow'
+
+    else if parsed[0] == 'weather'
         if key = parsed[3]
             context = {
                 '$location': capitalize unslugify parsed[2]
@@ -101,7 +105,7 @@ generateResponseBody = ({response, parsed}) ->
         entry = '%fallback'
 
     body = nalgene.generate grammar, context, entry
-    return {response, parsed, body}
+    return {response, parsed, body, prob}
 
 sent_message$.onValue (message) ->
     messages$.createItem message
@@ -173,6 +177,7 @@ App = React.createClass
                 transitionEnterTimeout=500
                 transitionLeaveTimeout=10
             >
+
             {@state.messages.map (message) =>
                 <div className={'message ' + message.sender} key={'m_' + message._id}>
                     {if message.sender == 'maia'
@@ -180,8 +185,10 @@ App = React.createClass
                     else
                         <img className='avatar' src='/images/human.png' />
                     }
+
                     {if not (message.body? or message.response?)
                         <em className='pending'>...</em>
+
                     else if message.body?
                         message.body.split('\n').map (line, li) =>
                             <p key={'li_' + li}>
@@ -192,6 +199,7 @@ App = React.createClass
                                 replaced
                                 }
                             </p>
+
                     else if message.response?
                         <div>
                             <span className='parsed'>{message.parsed.join(' ')}</span>
@@ -200,8 +208,12 @@ App = React.createClass
                             </pre>
                         </div>
                     }
+                    {if message.prob?
+                        <span className='prob'>{message.prob.toFixed(2)}</span>
+                    }
                 </div>
             }
+
             </ReactCSSTransitionGroup>
             <NewMessage />
         </div>

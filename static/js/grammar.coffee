@@ -2,6 +2,11 @@ module.exports = grammar = """
 %fallback
     I'm not sure what happened.
 
+%dontknow
+    I don't understand.
+    I didn't catch that.
+    I don't know what you're saying.
+
 %setState
     I turned the $device $state .
     I turned $state the $device .
