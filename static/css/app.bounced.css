@@ -12,24 +12,21 @@ body {
 }
 
 a {
-  color: #4990E2;
+  color: #515CA0;
+  cursor: pointer;
 }
 
 a:hover {
   text-decoration: underline;
-  cursor: pointer;
 }
 
-html,
-body,
-#app {
+#app > .spinner-container {
+  position: fixed;
   height: 100%;
-  overflow-x: hidden;
+  width: 100%;
 }
 
 .spinner-container {
-  height: 100%;
-  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -64,8 +61,8 @@ body,
   background: #222;
 }
 
-.message img,
-.new-message img {
+.message .avatar,
+.new-message .avatar {
   position: absolute;
   right: -40px;
 }
@@ -91,7 +88,7 @@ body,
   background: #f8f8f8;
 }
 
-.message.maia img {
+.message.maia .avatar {
   right: auto;
   left: -40px;
 }
@@ -101,7 +98,7 @@ body,
   display: flex;
 }
 
-.new-message img {
+.new-message .avatar {
   left: auto;
   right: -40px;
 }
@@ -114,8 +111,13 @@ body,
   flex-grow: 1;
 }
 
+.new-message button:hover {
+  background: rgb(73, 83, 144);
+}
+
 .new-message button {
   -webkit-appearance: none;
+  cursor: pointer;
   border: none;
   outline: none;
   font: inherit;
@@ -124,7 +126,7 @@ body,
   font-weight: 500;
   line-height: 20px;
   padding: 2px 15px;
-  background: rgb(66, 130, 203);
+  background: #515CA0;
   border-radius: 2px;
   float: right;
 }
@@ -145,4 +147,10 @@ body,
 .message-animation-leave.message-animation-leave-active {
   opacity: 0.1;
   transition: opacity 10ms;
+}
+
+@media (max-width: 600px) {
+  .avatar {
+    display: none;
+  }
 }

@@ -5283,7 +5283,7 @@ fetch$.setDefaultOptions = function(options) {
 
 module.exports = fetch$;
 
-},{"buffer":39,"deep-extend":1,"kefir":32,"whatwg-fetch":209}],32:[function(require,module,exports){
+},{"buffer":39,"deep-extend":1,"kefir":32,"whatwg-fetch":212}],32:[function(require,module,exports){
 arguments[4][30][0].apply(exports,arguments)
 },{"dup":30}],33:[function(require,module,exports){
 (function (global){
@@ -32775,6 +32775,628 @@ module.exports = traverseAllChildren;
 module.exports = require('./lib/React');
 
 },{"./lib/React":179}],209:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],210:[function(require,module,exports){
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+},{}],211:[function(require,module,exports){
+(function (process,global){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var formatRegExp = /%[sdj%]/g;
+exports.format = function(f) {
+  if (!isString(f)) {
+    var objects = [];
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function(x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+    switch (x) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
+        return x;
+    }
+  });
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+  return str;
+};
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  // Allow for deprecating things in the process of starting up.
+  if (isUndefined(global.process)) {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  if (process.noDeprecation === true) {
+    return fn;
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = process.env.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
+
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+/* legacy: obj, showHidden, depth, colors*/
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  };
+  // legacy...
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  }
+  // set default options
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+exports.inspect = inspect;
+
+
+// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+inspect.colors = {
+  'bold' : [1, 22],
+  'italic' : [3, 23],
+  'underline' : [4, 24],
+  'inverse' : [7, 27],
+  'white' : [37, 39],
+  'grey' : [90, 39],
+  'black' : [30, 39],
+  'blue' : [34, 39],
+  'cyan' : [36, 39],
+  'green' : [32, 39],
+  'magenta' : [35, 39],
+  'red' : [31, 39],
+  'yellow' : [33, 39]
+};
+
+// Don't use 'blue' not visible on cmd.exe
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+           '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+
+function arrayToHash(array) {
+  var hash = {};
+
+  array.forEach(function(val, idx) {
+    hash[val] = true;
+  });
+
+  return hash;
+}
+
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect &&
+      value &&
+      isFunction(value.inspect) &&
+      // Filter out the util module, it's inspect function is special
+      value.inspect !== exports.inspect &&
+      // Also filter out any prototype objects using the circular check.
+      !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+    return ret;
+  }
+
+  // Primitive types cannot have properties
+  var primitive = formatPrimitive(ctx, value);
+  if (primitive) {
+    return primitive;
+  }
+
+  // Look up the keys of the object.
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  }
+
+  // Some type of object without properties can be shortcutted.
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '', array = false, braces = ['{', '}'];
+
+  // Make Array say that they are Array
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  }
+
+  // Make functions say that they are functions
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  }
+
+  // Make RegExps say that they are RegExps
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  }
+
+  // Make dates with properties first say the date
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  }
+
+  // Make error with message first say the error
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+
+  var output;
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function(key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+
+  return reduceToSingleString(output, base, braces);
+}
+
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value))
+    return ctx.stylize('undefined', 'undefined');
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                             .replace(/'/g, "\\'")
+                                             .replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+  if (isNumber(value))
+    return ctx.stylize('' + value, 'number');
+  if (isBoolean(value))
+    return ctx.stylize('' + value, 'boolean');
+  // For some reason typeof null is "object", so special case here.
+  if (isNull(value))
+    return ctx.stylize('null', 'null');
+}
+
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+  keys.forEach(function(key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          key, true));
+    }
+  });
+  return output;
+}
+
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+    name = JSON.stringify('' + key);
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'")
+                 .replace(/\\"/g, '"')
+                 .replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function(prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] +
+           (base === '' ? '' : base + '\n ') +
+           ' ' +
+           output.join(',\n  ') +
+           ' ' +
+           braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+}
+
+
+// NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null ||
+         typeof arg === 'boolean' ||
+         typeof arg === 'number' ||
+         typeof arg === 'string' ||
+         typeof arg === 'symbol' ||  // ES6 symbol
+         typeof arg === 'undefined';
+}
+exports.isPrimitive = isPrimitive;
+
+exports.isBuffer = require('./support/isBuffer');
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+
+// log is just a thin wrapper to console.log that prepends a timestamp
+exports.log = function() {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+
+
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+exports.inherits = require('inherits');
+
+exports._extend = function(origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./support/isBuffer":210,"_process":41,"inherits":209}],212:[function(require,module,exports){
 (function(self) {
   'use strict';
 
@@ -33209,8 +33831,8 @@ module.exports = require('./lib/React');
   self.fetch.polyfill = true
 })(typeof self !== 'undefined' ? self : this);
 
-},{}],210:[function(require,module,exports){
-var App, KefirBus, KefirCollection, NewMessage, PlaceholderMessage, React, ReactCSSTransitionGroup, ReactContenteditable, ReactDOM, fetch$, initial_messages, messages$, postCommand, reactStringReplace, sendMessage, sent_message$;
+},{}],213:[function(require,module,exports){
+var App, KefirBus, KefirCollection, NewMessage, PlaceholderMessage, React, ReactCSSTransitionGroup, ReactContenteditable, ReactDOM, capitalize, capitalizeFirst, fetch$, generateResponseBody, grammar, initial_messages, messages$, nalgene, postCommand, reactStringReplace, sendMessage, sent_message$, unslugify;
 
 React = require('react');
 
@@ -33227,6 +33849,22 @@ KefirBus = require('kefir-bus');
 fetch$ = require('kefir-fetch');
 
 KefirCollection = require('kefir-collection');
+
+nalgene = require('nalgene');
+
+grammar = nalgene.parse(require('./grammar'));
+
+capitalizeFirst = function(s) {
+  return s[0].toUpperCase() + s.slice(1);
+};
+
+capitalize = function(s) {
+  return s.split(' ').map(capitalizeFirst).join(' ');
+};
+
+unslugify = function(s) {
+  return s.split('_').join(' ');
+};
 
 initial_messages = [
   {
@@ -33255,7 +33893,77 @@ postCommand = function(command, cb) {
     body: {
       command: command
     }
-  });
+  }).map(generateResponseBody);
+};
+
+generateResponseBody = function(_arg) {
+  var body, context, entry, key, parsed, response, suffix;
+  response = _arg.response, parsed = _arg.parsed;
+  console.log('sampled response', response, parsed);
+  if (parsed[0] === 'weather') {
+    if (key = parsed[3]) {
+      context = {
+        '$location': capitalize(unslugify(parsed[2]))
+      };
+      suffix = '';
+      if (key === 'temperature') {
+        suffix = 'º';
+      }
+      if (key === 'humidity') {
+        suffix = '%';
+      }
+      context['$key'] = key;
+      context['$value'] = response + suffix;
+      entry = '%gotWeather';
+    } else {
+      context = {
+        '$location': capitalize(unslugify(parsed[2])),
+        '$conditions': response.conditions.join(' and '),
+        '$temperature': response.temperature + 'º'
+      };
+      entry = '%gotWeather';
+    }
+  } else if (parsed[0] === 'time') {
+    context = {
+      '$time': response
+    };
+    entry = '%gotTime';
+  } else if (parsed[0] === 'price') {
+    context = {
+      '$price': response,
+      '$asset': parsed[2]
+    };
+    entry = '%gotPrice';
+  } else if (parsed[0] === 'lights') {
+    if (parsed[1] === 'getState') {
+      context = {
+        '$device': unslugify(parsed[2]),
+        '$state': response.on ? 'on' : 'off'
+      };
+      entry = '%gotState';
+    } else if (parsed[1] === 'setState') {
+      context = {
+        '$device': unslugify(parsed[2]),
+        '$state': parsed[3]
+      };
+      entry = '%setState';
+    } else if (parsed[1] === 'setStates') {
+      context = {
+        '$devices': unslugify(parsed[2]),
+        '$state': parsed[3]
+      };
+      entry = '%setState';
+    }
+  } else {
+    context = {};
+    entry = '%fallback';
+  }
+  body = nalgene.generate(grammar, context, entry);
+  return {
+    response: response,
+    parsed: parsed,
+    body: body
+  };
 };
 
 sent_message$.onValue(function(message) {
@@ -33309,6 +34017,7 @@ NewMessage = React.createClass({
       "className": 'new-message',
       "onSubmit": this.sendMessage
     }, React.createElement("img", {
+      "className": 'avatar',
       "src": '/images/human.png'
     }), React.createElement(ReactContenteditable, {
       "html": this.state.body,
@@ -33324,6 +34033,7 @@ PlaceholderMessage = function() {
   return React.createElement("div", {
     "className": 'placeholder-message'
   }, React.createElement("img", {
+    "className": 'avatar',
     "src": '/images/maia.png'
   }), ". . .");
 };
@@ -33343,14 +34053,6 @@ App = React.createClass({
       messages: messages
     }, this.fixScroll);
   },
-  filterMessages: function(filter) {
-    var messages;
-    messages = this.state.messages;
-    messages = messages.filter(filter);
-    return this.setState({
-      messages: messages
-    }, this.fixScroll);
-  },
   sendMessage: function(m) {
     return function() {
       m = m.replace(/"/g, '');
@@ -33358,7 +34060,7 @@ App = React.createClass({
     };
   },
   fixScroll: function() {
-    return document.body.scrollTop = document.body.scrollHeight;
+    return document.getElementById('app').scrollTop = document.body.scrollHeight;
   },
   render: function() {
     return React.createElement("div", {
@@ -33373,14 +34075,14 @@ App = React.createClass({
           "className": 'message ' + message.sender,
           "key": 'm_' + message._id
         }, (message.sender === 'maia' ? React.createElement("img", {
+          "className": 'avatar',
           "src": '/images/maia.png'
         }) : React.createElement("img", {
+          "className": 'avatar',
           "src": '/images/human.png'
         })), (!((message.body != null) || (message.response != null)) ? React.createElement("em", {
           "className": 'pending'
-        }, "...") : message.response != null ? React.createElement("div", null, React.createElement("span", {
-          "className": 'parsed'
-        }, message.parsed.join(' ')), React.createElement("pre", null, JSON.stringify(message.response))) : message.body.split('\n').map(function(line, li) {
+        }, "...") : message.body != null ? message.body.split('\n').map(function(line, li) {
           var replaced;
           return React.createElement("p", {
             "key": 'li_' + li
@@ -33395,7 +34097,9 @@ App = React.createClass({
               "onClick": _this.sendMessage(match)
             }, match);
           }), replaced));
-        })));
+        }) : message.response != null ? React.createElement("div", null, React.createElement("span", {
+          "className": 'parsed'
+        }, message.parsed.join(' ')), React.createElement("pre", null, JSON.stringify(message.response))) : void 0));
       };
     })(this))), React.createElement(NewMessage, null));
   }
@@ -33404,4 +34108,452 @@ App = React.createClass({
 ReactDOM.render(React.createElement(App, null), document.getElementById('app'));
 
 
-},{"kefir-bus":27,"kefir-collection":28,"kefir-fetch":31,"react":208,"react-addons-css-transition-group":43,"react-contenteditable":44,"react-dom":45,"react-string-replace":176}]},{},[210]);
+},{"./grammar":214,"kefir-bus":27,"kefir-collection":28,"kefir-fetch":31,"nalgene":217,"react":208,"react-addons-css-transition-group":43,"react-contenteditable":44,"react-dom":45,"react-string-replace":176}],214:[function(require,module,exports){
+var grammar;
+
+module.exports = grammar = "%fallback\n    I'm not sure what happened.\n\n%setState\n    I turned the $device $state .\n    I turned $state the $device .\n    the $device is now $state .\n    $devices are now $state .\n\n%gotState\n    the $device is $state .\n\n%gotTime\n    the time is $time .\n    it is $time .\n\n%gotPrice\n    the price of $asset is ~currently? $price .\n    $asset is ~currently? $price .\n\n%gotWeather\n    $location is ~currently? $temperature with $conditions .\n    the $location $key is ~currently? $value .\n    the $key of $location is ~currently? $value .\n\n~currently\n    currently\n\n~ok\n    ok,\n    sure,";
+
+
+},{}],215:[function(require,module,exports){
+// Generated by CoffeeScript 1.12.4
+var asSentence, expandPhrase, expandPhrases, expandTokens, flatten, generate, randomChoice, ref, splitToken,
+  slice = [].slice;
+
+ref = require('./helpers'), randomChoice = ref.randomChoice, flatten = ref.flatten, splitToken = ref.splitToken, asSentence = ref.asSentence;
+
+module.exports = generate = function(root, context, entry_key, options) {
+  var best_phrases, entry, good_phrases, i, inContext, len, notInContext, numInContext, numNotInContext, num_in_best, phrase, phrases, skip_duplicates;
+  if (context == null) {
+    context = {};
+  }
+  if (entry_key == null) {
+    entry_key = '%';
+  }
+  if (options == null) {
+    options = {};
+  }
+  skip_duplicates = options.skip_duplicates;
+  entry = root.get(entry_key);
+  if (entry == null) {
+    throw new Error('No such phrase on root: ' + entry_key);
+  }
+  phrases = expandPhrases(entry, root);
+  notInContext = function(token) {
+    return token.match(/^\$/) && (context[token] == null);
+  };
+  numNotInContext = function(tokens) {
+    var i, len, n, ref1, token, used;
+    n = 0;
+    used = {};
+    ref1 = flatten(tokens.map(splitToken));
+    for (i = 0, len = ref1.length; i < len; i++) {
+      token = ref1[i];
+      if (notInContext(token)) {
+        n += 1;
+      } else if (inContext(token) && skip_duplicates) {
+        if (used[token]) {
+          n += 1;
+        } else {
+          used[token] = true;
+        }
+      }
+    }
+    return n;
+  };
+  inContext = function(token) {
+    return token.match(/^\$/) && (context[token] != null);
+  };
+  numInContext = function(tokens) {
+    var i, len, n, ref1, token, used;
+    n = 0;
+    used = {};
+    ref1 = flatten(tokens.map(splitToken));
+    for (i = 0, len = ref1.length; i < len; i++) {
+      token = ref1[i];
+      if (inContext(token)) {
+        if (!used[token] || !skip_duplicates) {
+          used[token] = true;
+          n += 1;
+        }
+      }
+    }
+    return n;
+  };
+  good_phrases = phrases.filter(function(tokens) {
+    return numNotInContext(tokens) === 0;
+  });
+  if (good_phrases.length === 0) {
+    throw new Error('No viable phrases for entry ' + entry_key + ' with context: ' + JSON.stringify(context));
+  }
+  good_phrases.sort(function(a, b) {
+    return numInContext(b) - numInContext(a);
+  });
+  num_in_best = numInContext(good_phrases[0]);
+  best_phrases = [];
+  for (i = 0, len = good_phrases.length; i < len; i++) {
+    phrase = good_phrases[i];
+    if (numInContext(phrase) === num_in_best) {
+      best_phrases.push(phrase);
+    } else {
+      break;
+    }
+  }
+  phrase = randomChoice(best_phrases);
+  return asSentence(expandTokens(phrase, root, context));
+};
+
+expandPhrases = function(phrase, root) {
+  return flatten(phrase.allLeaves().map(function(leaf) {
+    return expandPhrase(leaf.key, root);
+  }));
+};
+
+expandPhrase = function(key, root) {
+  var e, expansion, expansions, i, j, k, l, len, len1, len2, len3, new_expansions, ref1, sub_phrase, token, tokens;
+  expansions = [[]];
+  tokens = key.split(' ');
+  for (i = 0, len = tokens.length; i < len; i++) {
+    token = tokens[i];
+    if (token.match(/^%/)) {
+      new_expansions = [];
+      token = token.split('|')[0];
+      sub_phrase = root.get(token);
+      if (!sub_phrase) {
+        throw new Error('No such phrase on root: ' + token);
+      }
+      ref1 = expandPhrases(sub_phrase, root);
+      for (j = 0, len1 = ref1.length; j < len1; j++) {
+        e = ref1[j];
+        for (k = 0, len2 = expansions.length; k < len2; k++) {
+          expansion = expansions[k];
+          new_expansions.push(expansion.concat(e));
+        }
+      }
+      expansions = new_expansions;
+    } else {
+      for (l = 0, len3 = expansions.length; l < len3; l++) {
+        expansion = expansions[l];
+        expansion.push(token);
+      }
+    }
+  }
+  return expansions;
+};
+
+expandTokens = function(tokens, root, context) {
+  var expanded, g, given, i, j, len, len1, ref1, sub_phrase, sub_tokens, synonym, synonym_tokens, token;
+  expanded = [];
+  for (i = 0, len = tokens.length; i < len; i++) {
+    token = tokens[i];
+    if (token.match(/^\$/)) {
+      expanded.push(context[token]);
+    } else if (token.match(/^~/)) {
+      if (token.match(/\?$/)) {
+        if (Math.random() < 0.5) {
+          continue;
+        } else {
+          token = token.slice(0, -1);
+        }
+      }
+      synonym = root.get(token);
+      if (!synonym) {
+        throw new Error('No such synonym on root: ' + token);
+      }
+      synonym_tokens = synonym.randomLeaf().key.split(' ');
+      expanded = expanded.concat(expandTokens(synonym_tokens, root, context));
+    } else if (token.match(/^#/)) {
+      ref1 = token.split('|'), token = ref1[0], given = 2 <= ref1.length ? slice.call(ref1, 1) : [];
+      sub_phrase = root.get(token);
+      if (sub_phrase == null) {
+        throw new Error('No such hash on root: ' + token);
+      }
+      if (!given.length) {
+        throw new Error('No values given for hash: ' + token);
+      }
+      for (j = 0, len1 = given.length; j < len1; j++) {
+        g = given[j];
+        if (g.match(/^\$/)) {
+          sub_phrase = sub_phrase.get(context[g]);
+        } else {
+          sub_phrase = sub_phrase.get(g);
+        }
+        if (sub_phrase == null) {
+          throw new Error('No such value on hash: ' + token + '|' + given.map(function(g) {
+            return context[g];
+          }).join('|'));
+        }
+      }
+      sub_tokens = sub_phrase.randomLeaf().key.split(' ');
+      expanded = expanded.concat(expandTokens(sub_tokens, root, context));
+    } else {
+      expanded.push(token);
+    }
+  }
+  return expanded;
+};
+
+},{"./helpers":216}],216:[function(require,module,exports){
+// Generated by CoffeeScript 1.12.4
+var print, util,
+  slice = [].slice;
+
+util = require('util');
+
+exports.flatten = function(ls) {
+  var flat, i, j, k, l, len, len1;
+  flat = [];
+  for (j = 0, len = ls.length; j < len; j++) {
+    l = ls[j];
+    for (k = 0, len1 = l.length; k < len1; k++) {
+      i = l[k];
+      flat.push(i);
+    }
+  }
+  return flat;
+};
+
+exports.randomChoice = function(l) {
+  return l[Math.floor(Math.random() * l.length)];
+};
+
+exports.capitalize = function(s) {
+  if (s.length) {
+    return s[0].toUpperCase() + s.slice(1);
+  } else {
+    return '';
+  }
+};
+
+exports.countIndentation = function(s) {
+  var c, i, j, len, ref;
+  i = 0;
+  ref = s.split('');
+  for (j = 0, len = ref.length; j < len; j++) {
+    c = ref[j];
+    if (c === ' ') {
+      i += 1;
+    } else {
+      break;
+    }
+  }
+  s = s.slice(i);
+  return [i / 4, s];
+};
+
+exports.isALine = function(arg) {
+  var i, s;
+  i = arg[0], s = arg[1];
+  return s.length > 0;
+};
+
+exports.splitToken = function(token) {
+  return token.split('|');
+};
+
+exports.fixCapitalization = function(s) {
+  return s = s.split(/([.!?] )/).map(exports.capitalize).join('');
+};
+
+exports.fixPunctuation = function(s) {
+  s = s.replace(/\s+/g, ' ');
+  s = s.replace(/\ ([,.!?])/g, '$1');
+  return s;
+};
+
+exports.asSentence = function(tokens) {
+  return exports.fixCapitalization(exports.fixPunctuation(tokens.join(' ')));
+};
+
+exports.inspect = function(o) {
+  return util.inspect(o, {
+    colors: true,
+    depth: null
+  });
+};
+
+print = function() {
+  var o, o_string;
+  o = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+  if (o.length > 1) {
+    if (typeof o[0] === 'string') {
+      console.log("[" + o[0] + "]");
+      o.shift();
+    }
+    o_string = o.map(exports.inspect).join('\n    ');
+  } else {
+    o_string = exports.inspect(o[0]);
+  }
+  return console.log('    ' + o_string);
+};
+
+},{"util":211}],217:[function(require,module,exports){
+// Generated by CoffeeScript 1.12.4
+module.exports = {
+  parse: require('./parse'),
+  generate: require('./generate'),
+  Tree: require('./tree')
+};
+
+},{"./generate":215,"./parse":218,"./tree":219}],218:[function(require,module,exports){
+// Generated by CoffeeScript 1.12.4
+var Tree, helpers, parse;
+
+helpers = require('./helpers');
+
+Tree = require('./tree');
+
+module.exports = parse = function(grammar) {
+  var current_index, i, ii, j, len, lines, m, ref, ref1, root, s, tree;
+  lines = grammar.split('\n').map(helpers.countIndentation).filter(helpers.isALine);
+  root = new Tree(null, '^', -1);
+  tree = root;
+  current_index = -1;
+  for (j = 0, len = lines.length; j < len; j++) {
+    ref = lines[j], i = ref[0], s = ref[1];
+    if (i === current_index) {
+      tree = tree.addSibling(s, i);
+    } else if (i > current_index) {
+      tree = tree.addChild(s, i);
+    } else if (i < current_index) {
+      for (ii = m = 0, ref1 = i - tree.level; 0 <= ref1 ? m < ref1 : m > ref1; ii = 0 <= ref1 ? ++m : --m) {
+        tree = tree.parent;
+      }
+      tree = tree.addSibling(s, i);
+    }
+    current_index = i;
+  }
+  return root;
+};
+
+parse.fromCSV = function(csv, key) {
+  var j, len, line, lines, m, p, ref, sub_categories, sub_category, sub_i, tree;
+  lines = csv.trim().split('\n').map(function(l) {
+    return l.trim().split(',');
+  });
+  sub_categories = lines.shift().slice(1);
+  tree = new Tree(null, key);
+  for (j = 0, len = lines.length; j < len; j++) {
+    line = lines[j];
+    p = tree.addChild(line[0]);
+    for (sub_i = m = 0, ref = sub_categories.length; 0 <= ref ? m < ref : m > ref; sub_i = 0 <= ref ? ++m : --m) {
+      sub_category = sub_categories[sub_i];
+      p.addChild(sub_category).addChild(line[sub_i + 1]);
+    }
+  }
+  return tree;
+};
+
+parse.fromObject = function(object, key) {
+  var j, k, len, tree, v;
+  tree = new Tree(null, key);
+  if (Array.isArray(object)) {
+    for (j = 0, len = object.length; j < len; j++) {
+      v = object[j];
+      tree.addChild(v);
+    }
+  } else if (typeof object === 'object') {
+    for (k in object) {
+      v = object[k];
+      tree.addChild(parse.fromObject(v, k));
+    }
+  } else {
+    tree.addChild(object);
+  }
+  return tree;
+};
+
+},{"./helpers":216,"./tree":219}],219:[function(require,module,exports){
+// Generated by CoffeeScript 1.12.4
+var Tree, randomChoice;
+
+randomChoice = require('./helpers').randomChoice;
+
+module.exports = Tree = (function() {
+  function Tree(parent, key1, level1, children) {
+    this.parent = parent;
+    this.key = key1;
+    this.level = level1;
+    this.children = children != null ? children : [];
+    this.children_by_key = {};
+  }
+
+  Tree.prototype.addChild = function(child, level) {
+    if (child.key == null) {
+      child = new Tree(this, child, level);
+    } else {
+      child.parent = this;
+    }
+    this.children.push(child);
+    this.children_by_key[child.key] = child;
+    return child;
+  };
+
+  Tree.prototype.addSibling = function(sibling, level) {
+    return this.parent.addChild(sibling, level);
+  };
+
+  Tree.prototype.toString = function(indent) {
+    var child, i, ii, j, len, ref, ref1, ref2, s;
+    if (indent == null) {
+      indent = 0;
+    }
+    s = '\n';
+    for (ii = i = 0, ref = indent * 4; 0 <= ref ? i < ref : i > ref; ii = 0 <= ref ? ++i : --i) {
+      s += ' ';
+    }
+    s += '( ' + this.key;
+    if ((ref1 = this.children) != null ? ref1.length : void 0) {
+      s += ' ( ';
+      ref2 = this.children;
+      for (j = 0, len = ref2.length; j < len; j++) {
+        child = ref2[j];
+        s += child.toString(indent + 1);
+      }
+      s += ' )';
+    }
+    s += ' )';
+    return s;
+  };
+
+  Tree.prototype.get = function(key) {
+    return this.children_by_key[key];
+  };
+
+  Tree.prototype.randomChild = function() {
+    return randomChoice(this.children);
+  };
+
+  Tree.prototype.randomLeaf = function() {
+    var leaf;
+    leaf = this.randomChild();
+    if (leaf.isLeaf()) {
+      return leaf;
+    } else {
+      return leaf.randomLeaf();
+    }
+  };
+
+  Tree.prototype.isLeaf = function() {
+    return this.children.length === 0;
+  };
+
+  Tree.prototype.allLeaves = function() {
+    var all_leaves, child, i, len, ref;
+    all_leaves = [];
+    ref = this.children;
+    for (i = 0, len = ref.length; i < len; i++) {
+      child = ref[i];
+      if (child.isLeaf()) {
+        all_leaves.push(child);
+      } else {
+        all_leaves = all_leaves.concat(child.allLeaves());
+      }
+    }
+    return all_leaves;
+  };
+
+  return Tree;
+
+})();
+
+},{"./helpers":216}]},{},[213]);
