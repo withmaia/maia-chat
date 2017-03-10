@@ -34060,11 +34060,14 @@ App = React.createClass({
     };
   },
   fixScroll: function() {
-    return document.getElementById('app').scrollTop = document.body.scrollHeight;
+    var el;
+    el = document.body;
+    return el.scrollTop = el.scrollHeight;
   },
   render: function() {
     return React.createElement("div", {
-      "className": 'messages'
+      "className": 'messages',
+      "ref": 'messages'
     }, React.createElement(ReactCSSTransitionGroup, {
       "transitionName": "message-animation",
       "transitionEnterTimeout": 500,

@@ -163,10 +163,11 @@ App = React.createClass
         sendMessage m
 
     fixScroll: ->
-        document.getElementById('app').scrollTop = document.body.scrollHeight
+        el = document.body
+        el.scrollTop = el.scrollHeight
 
     render: ->
-        <div className='messages'>
+        <div className='messages' ref='messages'>
             <ReactCSSTransitionGroup
                 transitionName="message-animation"
                 transitionEnterTimeout=500
