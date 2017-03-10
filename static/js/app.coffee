@@ -6,6 +6,13 @@ ReactCSSTransitionGroup = require 'react-addons-css-transition-group'
 KefirBus = require 'kefir-bus'
 fetch$ = require 'kefir-fetch'
 KefirCollection = require 'kefir-collection'
+nalgene = require 'nalgene'
+grammar = nalgene.parse require './grammar'
+
+capitalizeFirst = (s) -> s[0].toUpperCase() + s.slice(1)
+capitalize = (s) -> s.split(' ').map(capitalizeFirst).join(' ')
+
+unslugify = (s) -> s.split('_').join(' ')
 
 initial_messages = [
     {
@@ -29,6 +36,72 @@ sendMessage = (m) ->
 
 postCommand = (command, cb) ->
     fetch$ 'post', 'http://withmaia.com/sample.json', {body: {command}}
+        .map generateResponseBody
+
+generateResponseBody = ({response, parsed}) ->
+    console.log 'sampled response', response, parsed
+
+    if parsed[0] == 'weather'
+        if key = parsed[3]
+            context = {
+                '$location': capitalize unslugify parsed[2]
+            }
+            suffix = ''
+            suffix = 'º' if key == 'temperature'
+            suffix = '%' if key == 'humidity'
+            context['$key'] = key
+            context['$value'] = response + suffix
+            entry = '%gotWeather'
+        else
+            context = {
+                '$location': capitalize unslugify parsed[2]
+                '$conditions': response.conditions.join(' and ')
+                '$temperature': response.temperature + 'º'
+            }
+            entry = '%gotWeather'
+
+    else if parsed[0] == 'time'
+        context = {
+            '$time': response
+        }
+        entry = '%gotTime'
+
+    else if parsed[0] == 'price'
+        context = {
+            '$price': response
+            '$asset': parsed[2]
+        }
+        entry = '%gotPrice'
+
+    else if parsed[0] == 'lights'
+
+        if parsed[1] == 'getState'
+            context = {
+                '$device': unslugify parsed[2]
+                '$state': if response.on then 'on' else 'off'
+            }
+            entry = '%gotState'
+
+        else if parsed[1] == 'setState'
+            context = {
+                '$device': unslugify parsed[2]
+                '$state': parsed[3]
+            }
+            entry = '%setState'
+
+        else if parsed[1] == 'setStates'
+            context = {
+                '$devices': unslugify parsed[2]
+                '$state': parsed[3]
+            }
+            entry = '%setState'
+
+    else
+        context = {}
+        entry = '%fallback'
+
+    body = nalgene.generate grammar, context, entry
+    return {response, parsed, body}
 
 sent_message$.onValue (message) ->
     messages$.createItem message
@@ -63,14 +136,14 @@ NewMessage = React.createClass
 
     render: ->
         <form className='new-message' onSubmit=@sendMessage>
-            <img src='/images/human.png' />
+            <img className='avatar' src='/images/human.png' />
             <ReactContenteditable html=@state.body onChange=@onChange onKeyDown=@onKeyDown />
             <button onClick=@sendMessage>Send</button>
         </form>
 
 PlaceholderMessage = ->
     <div className='placeholder-message'>
-        <img src='/images/maia.png' />
+        <img className='avatar' src='/images/maia.png' />
         . . .
     </div>
 
@@ -85,17 +158,12 @@ App = React.createClass
     setMessages: (messages) ->
         @setState {messages}, @fixScroll
 
-    filterMessages: (filter) ->
-        messages = @state.messages
-        messages = messages.filter filter
-        @setState {messages}, @fixScroll
-
     sendMessage: (m) -> ->
         m = m.replace /"/g, ''
         sendMessage m
 
     fixScroll: ->
-        document.body.scrollTop = document.body.scrollHeight
+        document.getElementById('app').scrollTop = document.body.scrollHeight
 
     render: ->
         <div className='messages'>
@@ -107,20 +175,13 @@ App = React.createClass
             {@state.messages.map (message) =>
                 <div className={'message ' + message.sender} key={'m_' + message._id}>
                     {if message.sender == 'maia'
-                        <img src='/images/maia.png' />
+                        <img className='avatar' src='/images/maia.png' />
                     else
-                        <img src='/images/human.png' />
+                        <img className='avatar' src='/images/human.png' />
                     }
                     {if not (message.body? or message.response?)
                         <em className='pending'>...</em>
-                    else if message.response?
-                        <div>
-                            <span className='parsed'>{message.parsed.join(' ')}</span>
-                            <pre>
-                                {JSON.stringify message.response}
-                            </pre>
-                        </div>
-                    else
+                    else if message.body?
                         message.body.split('\n').map (line, li) =>
                             <p key={'li_' + li}>
                                 {replaced = reactStringReplace line, /("[^"]+")/g, (match, mi) =>
@@ -130,6 +191,13 @@ App = React.createClass
                                 replaced
                                 }
                             </p>
+                    else if message.response?
+                        <div>
+                            <span className='parsed'>{message.parsed.join(' ')}</span>
+                            <pre>
+                                {JSON.stringify message.response}
+                            </pre>
+                        </div>
                     }
                 </div>
             }

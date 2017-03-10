@@ -1,5 +1,6 @@
 $colors
     blue: #4990E2
+    purple: #515CA0
 
 *
     margin: 0
@@ -11,18 +12,18 @@ body
     -webkit-font-smoothing: antialiased
 
 a
-    color: $colors.blue
+    color: $colors.purple
+    cursor: pointer
+
     &:hover
         text-decoration: underline
-        cursor: pointer
 
-html, body, #app
-    height: 100%
-    overflow-x: hidden
-
-.spinner-container
+#app > .spinner-container
+    position: fixed
     height: 100%
     width: 100%
+
+.spinner-container
     display: flex
     justify-content: center
     align-items: center
@@ -49,7 +50,7 @@ html, body, #app
     color: #fff
     background: #222
 
-    img
+    .avatar
         position: absolute
         right: -40px
 
@@ -67,7 +68,7 @@ html, body, #app
     color: #000
     background: #f8f8f8
 
-    img
+    .avatar
         right: auto
         left: -40px
 
@@ -76,7 +77,7 @@ html, body, #app
     margin-top: 15px
     display: flex
 
-    img
+    .avatar
         left: auto
         right: -40px
 
@@ -89,6 +90,7 @@ html, body, #app
 
     button
         -webkit-appearance: none
+        cursor: pointer
         border: none
         outline: none
         font: inherit
@@ -97,9 +99,11 @@ html, body, #app
         font-weight: 500
         line-height: 20px
         padding: 2px 15px
-        background: color($colors.blue shade(10%))
+        background: $colors.purple
         border-radius: 2px
         float: right
+        &:hover
+            background: color($colors.purple shade(10%))
 
 .message-animation-enter
     opacity: 0.1
@@ -114,3 +118,7 @@ html, body, #app
 .message-animation-leave.message-animation-leave-active
     opacity: 0.1
     transition: opacity 10ms
+
+@media(max-width: 600px)
+    .avatar
+        display: none
