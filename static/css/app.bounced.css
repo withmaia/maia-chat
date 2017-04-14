@@ -13,11 +13,13 @@ body {
 }
 
 a {
-  color: #515CA0;
+  color: rgb(212, 214, 231);
   cursor: pointer;
 }
 
-a:hover {
+a:hover,
+a:focus {
+  color: #fff;
   text-decoration: underline;
 }
 
@@ -49,15 +51,15 @@ a:hover {
 }
 
 .message + .message {
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 .message {
   position: relative;
   padding: 10px 15px;
-  border-radius: 4px;
-  color: #fff;
-  background: #222;
+  border-radius: 20px;
+  color: #222;
+  background: #fff;
 }
 
 .message .avatar {
@@ -76,7 +78,8 @@ a:hover {
 
 .message .prob {
   position: absolute;
-  top: 10px;
+  font-size: 0.8rem;
+  top: 11px;
   right: 15px;
   color: #999;
 }
@@ -86,8 +89,8 @@ a:hover {
 }
 
 .message.maia {
-  color: #000;
-  background: #fff;
+  color: #fff;
+  background: #515CA0;
 }
 
 .message.maia .avatar {
@@ -132,8 +135,8 @@ a:hover {
   outline: none;
   font: inherit;
   color: #fff;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: bold;
   line-height: 20px;
   padding: 2px 15px;
   margin: 10px;
