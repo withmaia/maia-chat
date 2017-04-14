@@ -8,8 +8,9 @@ $colors
 
 body
     font: 15px/25px "DIN-Regular"
-    background: #fff
+    background: #f3f3f3
     -webkit-font-smoothing: antialiased
+    padding-bottom: 50px
 
 a
     color: $colors.purple
@@ -37,7 +38,7 @@ a
 
 .messages
     max-width: 500px
-    padding: 15px
+    padding: 10px
     margin: 0 auto
 
 .message + .message
@@ -45,8 +46,8 @@ a
 
 .message
     position: relative
-    padding: 15px
-    border-radius: 5px
+    padding: 10px 15px
+    border-radius: 4px
     color: #fff
     background: #222
 
@@ -63,7 +64,7 @@ a
 
 .message .prob
     position: absolute
-    top: 15px
+    top: 10px
     right: 15px
     color: #999
 
@@ -72,14 +73,19 @@ a
 
 .message.maia
     color: #000
-    background: #f8f8f8
+    background: #fff
 
     .avatar
         right: auto
         left: -40px
 
 .new-message
-    inherits: .message
+    position: fixed
+    bottom: 0
+    left: 0
+    right: 0
+    height: 50px
+    background: #222
     margin-top: 15px
     display: flex
 
@@ -93,6 +99,8 @@ a
         outline: none
         border: none
         flex-grow: 1
+        color: #fff
+        padding: 10px
 
     button
         -webkit-appearance: none
@@ -105,6 +113,7 @@ a
         font-weight: 500
         line-height: 20px
         padding: 2px 15px
+        margin: 10px
         background: $colors.purple
         border-radius: 2px
         float: right
