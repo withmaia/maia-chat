@@ -7,8 +7,9 @@
 
 body {
   font: 15px/25px "DIN-Regular";
-  background: #fff;
+  background: #f3f3f3;
   -webkit-font-smoothing: antialiased;
+  padding-bottom: 50px;
 }
 
 a {
@@ -43,57 +44,50 @@ a:hover {
 
 .messages {
   max-width: 500px;
-  padding: 15px;
+  padding: 10px;
   margin: 0 auto;
 }
 
-.message + .message,
-.new-message + .new-message {
+.message + .message {
   margin-top: 15px;
 }
 
-.message,
-.new-message {
+.message {
   position: relative;
-  padding: 15px;
-  border-radius: 5px;
+  padding: 10px 15px;
+  border-radius: 4px;
   color: #fff;
   background: #222;
 }
 
-.message .avatar,
-.new-message .avatar {
+.message .avatar {
   position: absolute;
   right: -40px;
 }
 
-.message p + p,
-.new-message p + p {
+.message p + p {
   margin-top: 15px;
 }
 
-.message .parsed,
-.new-message .parsed {
+.message .parsed {
   font-weight: 500;
   font-size: 13px;
 }
 
-.message .prob,
-.new-message .prob {
+.message .prob {
   position: absolute;
-  top: 15px;
+  top: 10px;
   right: 15px;
   color: #999;
 }
 
-.message pre,
-.new-message pre {
+.message pre {
   font-family: "Menlo", "Monaco", monospace;
 }
 
 .message.maia {
   color: #000;
-  background: #f8f8f8;
+  background: #fff;
 }
 
 .message.maia .avatar {
@@ -102,6 +96,12 @@ a:hover {
 }
 
 .new-message {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: #222;
   margin-top: 15px;
   display: flex;
 }
@@ -117,6 +117,8 @@ a:hover {
   outline: none;
   border: none;
   flex-grow: 1;
+  color: #fff;
+  padding: 10px;
 }
 
 .new-message button:hover {
@@ -134,6 +136,7 @@ a:hover {
   font-weight: 500;
   line-height: 20px;
   padding: 2px 15px;
+  margin: 10px;
   background: #515CA0;
   border-radius: 2px;
   float: right;
