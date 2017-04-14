@@ -91,11 +91,16 @@ a:focus {
 .message.maia {
   color: #fff;
   background: #515CA0;
+  border-top-left-radius: 0;
 }
 
 .message.maia .avatar {
   right: auto;
   left: -40px;
+}
+
+.message.human {
+  border-bottom-right-radius: 0;
 }
 
 .new-message {
