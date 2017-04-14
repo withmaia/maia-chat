@@ -6,7 +6,7 @@
 }
 
 body {
-  font: 15px/25px "DIN-Regular";
+  font: 15px/25px Roboto;
   background: #f3f3f3;
   -webkit-font-smoothing: antialiased;
   padding-bottom: 50px;
