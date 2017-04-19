@@ -1,6 +1,11 @@
 nalgene = require 'nalgene'
 grammar = nalgene.parse require './grammar'
 
+capitalizeFirst = (s) -> s[0].toUpperCase() + s.slice(1)
+capitalize = (s) -> s.split(' ').map(capitalizeFirst).join(' ')
+
+unslugify = (s) -> s.split('_').join(' ')
+
 module.exports = generateResponseBody = ({response, parsed, prob}) ->
     console.log '[generateResponseBody]', response, parsed, prob
 

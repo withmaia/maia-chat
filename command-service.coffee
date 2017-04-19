@@ -12,6 +12,7 @@ service_aliases = {
 MIN_PROB = -0.05
 
 command = (body, cb) ->
+    console.log '[command] body =', body
     if body.length < 2
         cb 'Input is too short'
     else if body.length > 50
@@ -21,7 +22,9 @@ command = (body, cb) ->
             if err
                 console.log '[parsed ERROR]', err
                 return cb err
-            console.log '[parsed]', response
+            else
+                console.log '[parsed]', response
+
             if response.prob > MIN_PROB and response.parsed.length
                 {parsed, prob} = response
                 [service, command, args...] = parsed
@@ -29,10 +32,11 @@ command = (body, cb) ->
                     service = service_alias
                 client.remote service, command, args..., (err, response) ->
                     console.log '[response]', err or response
-                    {response, parsed, prob} = generateResponseBody {response, parsed, prob}
-                    cb null, {response, parsed, prob}
+                    {body, response, parsed, prob} = generateResponseBody {response, parsed, prob}
+                    cb null, {body, response, parsed, prob}
 
             else
                 cb null, response
 
 new somata.Service 'maia:command', {command}
+
