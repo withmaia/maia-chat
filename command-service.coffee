@@ -22,11 +22,11 @@ command = (body, cb) ->
             if err
                 console.log '[parsed ERROR]', err
                 return cb err
-            else
-                console.log '[parsed]', response
 
-            if response.prob > MIN_PROB and response.parsed.length
-                {parsed, prob} = response
+            console.log '[parsed]', response
+            {parsed, prob} = response
+
+            if prob > MIN_PROB and parsed.length
                 [service, command, args...] = parsed
                 if service_alias = service_aliases[service]
                     service = service_alias
@@ -36,7 +36,9 @@ command = (body, cb) ->
                     cb null, {body, response, parsed, prob}
 
             else
-                cb null, response
+                response = null
+                {body, response, parsed, prob} = generateResponseBody {response, parsed, prob}
+                cb null, {body, response, parsed, prob}
 
 new somata.Service 'maia:command', {command}
 

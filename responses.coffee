@@ -9,7 +9,7 @@ unslugify = (s) -> s.split('_').join(' ')
 module.exports = generateResponseBody = ({response, parsed, prob}) ->
     console.log '[generateResponseBody]', response, parsed, prob
 
-    if prob < -0.05
+    if !response?
         context = {}
         entry = '%dontknow'
 
