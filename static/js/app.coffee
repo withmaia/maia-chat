@@ -6,23 +6,19 @@ ReactCSSTransitionGroup = require 'react-addons-css-transition-group'
 KefirBus = require 'kefir-bus'
 fetch$ = require 'kefir-fetch'
 KefirCollection = require 'kefir-collection'
-nalgene = require 'nalgene'
-grammar = nalgene.parse require './grammar'
 
 capitalizeFirst = (s) -> s[0].toUpperCase() + s.slice(1)
 capitalize = (s) -> s.split(' ').map(capitalizeFirst).join(' ')
 
 unslugify = (s) -> s.split('_').join(' ')
 
-initial_messages = [
-    {
-        _id: 0
-        sender: 'maia'
-        body: """
-            Hi there, I am Maia. You can call me @maia. I know how to do a few useful things, like "turn on the office light" or "turn off all the lights" or answer "what is the price of bitcoin?"
-        """
-    }
-]
+initial_message = {
+    _id: 0
+    sender: 'maia'
+    body: """
+        Hi there, I am Maia. You can call me @maia. I know how to do a few useful things, like "turn on the office light" or "turn off all the lights" or answer "what is the price of bitcoin?"
+    """
+}
 
 messages$ = KefirCollection([], id_key: '_id')
 sent_message$ = KefirBus()
@@ -35,77 +31,7 @@ sendMessage = (m) ->
     }
 
 postCommand = (command, cb) ->
-    fetch$ 'post', 'http://withmaia.com/sample.json', {body: {command}}
-        .map generateResponseBody
-
-generateResponseBody = ({response, parsed, prob}) ->
-    console.log 'sampled response', response, parsed, prob
-
-    if prob < -0.05
-        context = {}
-        entry = '%dontknow'
-
-    else if parsed[0] == 'weather'
-        if key = parsed[3]
-            context = {
-                '$location': capitalize unslugify parsed[2]
-            }
-            suffix = ''
-            suffix = 'º' if key == 'temperature'
-            suffix = '%' if key == 'humidity'
-            context['$key'] = key
-            context['$value'] = response + suffix
-            entry = '%gotWeather'
-        else
-            context = {
-                '$location': capitalize unslugify parsed[2]
-                '$conditions': response.conditions.join(' and ')
-                '$temperature': response.temperature + 'º'
-            }
-            entry = '%gotWeather'
-
-    else if parsed[0] == 'time'
-        context = {
-            '$time': response
-        }
-        entry = '%gotTime'
-
-    else if parsed[0] == 'price'
-        context = {
-            '$price': response
-            '$asset': parsed[2]
-        }
-        entry = '%gotPrice'
-
-    else if parsed[0] == 'lights'
-
-        if parsed[1] == 'getState'
-            context = {
-                '$device': unslugify parsed[2]
-                '$state': if response.on then 'on' else 'off'
-            }
-            entry = '%gotState'
-
-        else if parsed[1] == 'setState'
-            context = {
-                '$device': unslugify parsed[2]
-                '$state': parsed[3]
-            }
-            entry = '%setState'
-
-        else if parsed[1] == 'setStates'
-            context = {
-                '$devices': unslugify parsed[2]
-                '$state': parsed[3]
-            }
-            entry = '%setState'
-
-    else
-        context = {}
-        entry = '%fallback'
-
-    body = nalgene.generate grammar, context, entry
-    return {response, parsed, body, prob}
+    fetch$ 'post', 'http://withmaia.com/command.json', {body: {command}}
 
 sent_message$.onValue (message) ->
     messages$.createItem message
@@ -118,7 +44,7 @@ sent_message$.onValue (message) ->
         .onError (err) ->
             message = {error: "Oh no... " + err}
 
-messages$.createItem initial_messages[0]
+messages$.createItem initial_message
 
 NewMessage = React.createClass
     getInitialState: ->

@@ -14,9 +14,10 @@ app = polar config,
 
 app.get '/', (req, res) -> res.render 'index', {config}
 
-app.post '/sample.json', (req, res) ->
-    client.remote 'sample', 'sample', req.body.command, (err, response) ->
-        console.log 'response', response
+app.post '/command.json', (req, res) ->
+    command = req.body.body
+    client.remote 'maia:command', 'command', command, (err, response) ->
+        console.log '[command] response =', response
         res.json response
 
 app.start()
