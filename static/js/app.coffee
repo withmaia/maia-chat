@@ -30,8 +30,8 @@ sendMessage = (m) ->
         body: m
     }
 
-postCommand = (command, cb) ->
-    fetch$ 'post', 'http://withmaia.com/command.json', {body: {command}}
+postCommand = (body, cb) ->
+    fetch$ 'post', 'http://withmaia.com/command.json', {body: {body}}
 
 sent_message$.onValue (message) ->
     messages$.createItem message
@@ -64,10 +64,12 @@ NewMessage = React.createClass
             e.preventDefault()
             @sendMessage()
 
+    focus: ->
+        ReactDOM.findDOMNode(@refs.input).focus()
+
     render: ->
         <form className='new-message' onSubmit=@sendMessage>
-            <img className='avatar' src='/images/human.png' />
-            <ReactContenteditable html=@state.body onChange=@onChange onKeyDown=@onKeyDown />
+            <ReactContenteditable html=@state.body onChange=@onChange onKeyDown=@onKeyDown ref='input' />
             <button onClick=@sendMessage>Send</button>
         </form>
 
@@ -84,6 +86,7 @@ App = React.createClass
     componentDidMount: ->
         messages$.onValue @setMessages
         @fixScroll()
+        @refs.input.focus()
 
     setMessages: (messages) ->
         @setState {messages}, @fixScroll
@@ -141,7 +144,7 @@ App = React.createClass
             }
 
             </ReactCSSTransitionGroup>
-            <NewMessage />
+            <NewMessage ref='input' />
         </div>
 
 ReactDOM.render <App />, document.getElementById 'app'
