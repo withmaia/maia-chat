@@ -3,6 +3,8 @@ generateResponseBody = require './responses'
 
 client = new somata.Client
 
+not_services = ['greeting', 'thanks']
+
 service_aliases = {
     lights: "maia:hue",
     switches: "maia:wemo",
@@ -28,12 +30,19 @@ command = (body, cb) ->
 
             if prob > MIN_PROB and parsed.length
                 [service, command, args...] = parsed
-                if service_alias = service_aliases[service]
-                    service = service_alias
-                client.remote service, command, args..., (err, response) ->
-                    console.log '[response]', err or response
+
+                if service in not_services
+                    response = null
                     {body, response, parsed, prob} = generateResponseBody {response, parsed, prob}
                     cb null, {body, response, parsed, prob}
+
+                else
+                    if service_alias = service_aliases[service]
+                        service = service_alias
+                    client.remote service, command, args..., (err, response) ->
+                        console.log '[response]', err or response
+                        {body, response, parsed, prob} = generateResponseBody {response, parsed, prob}
+                        cb null, {body, response, parsed, prob}
 
             else
                 response = null

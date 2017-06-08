@@ -10,8 +10,12 @@ module.exports = generateResponseBody = ({response, parsed, prob}) ->
     console.log '[generateResponseBody]', response, parsed, prob
 
     if !response?
-        context = {}
-        entry = '%dontknow'
+        if grammar.children_by_key['%' + parsed[0]]
+            context = {}
+            entry = '%' + parsed[0]
+        else
+            context = {}
+            entry = '%dontknow'
 
     else if parsed[0] == 'weather'
         if key = parsed[3]
