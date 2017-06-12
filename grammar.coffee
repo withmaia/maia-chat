@@ -7,8 +7,9 @@ module.exports = grammar = """
     I didn't catch that.
     I don't understand.
     I don't ~understand ~what_you_said .
-    Not sure what you're talking about.
+    Not sure ~what_you_said .
     What?
+    Huh?
 
 ~understand
     understand
@@ -19,8 +20,40 @@ module.exports = grammar = """
 ~what_you_said
     what you said
     what you're saying
+    what you're trying to say
     what you're talking about
     what that means
+
+%greeting
+    ~greeting $sender !
+    ~greeting .
+
+~greeting
+    Hi
+    Oh hai
+    Hey there
+    Hello
+
+%farewell
+    ~farewell $sender !
+    ~farewell .
+
+~farewell
+    Bye 
+    Goodbye
+    Talk to you later
+    See you later
+
+%howareyou
+    I'm ~good .
+
+~good
+    good
+    pretty good
+    fine
+    great
+    just existing here
+    perfectly ok
 
 %thanks
     You're welcome.
@@ -28,15 +61,18 @@ module.exports = grammar = """
     No, thank you.
     My pleasure.
 
+%insult
+    Lol ok .
+    I'm sorry to hear that .
+    Bless your heart .
+    Lol ok $sender .
+    I'm sorry to hear that $sender .
+    Bless your heart $sender .
+
 ~very
     very
     extremely
     so
-
-%greeting
-    Oh hai.
-    Hey there.
-    Hello!
 
 %setState
     I turned the $device $state .
@@ -52,7 +88,9 @@ module.exports = grammar = """
 
 %gotPrice
     ~looks_like? the price of $asset is ~currently? $price .
-    ~looks_like? $asset is ~currently? $price .
+    ~looks_like? $asset is ~currently? $price , with a 24h volume of $volume on $market .
+    ~looks_like? $asset is $price ~now? , and the 24h volume is $volume on $market .
+    ~looks_like? $asset is $price ~now? . The 24h volume on $market is $volume .
     ~looks_like? $asset is $price ~now? .
 
 %gotWeather
@@ -62,7 +100,15 @@ module.exports = grammar = """
 
 ~looks_like
     looks like
+    seems like
+    it looks like
     it seems that
+    it seems
+    it appears
+    apparently
+    from what I can tell
+    according to my records
+    according to the internet
 
 ~currently
     currently

@@ -16,8 +16,8 @@ app.get '/', (req, res) -> res.render 'index', {config}
 
 app.post '/command.json', (req, res) ->
     console.log '[command body]', req.body
-    command = req.body.body
-    client.remote 'maia:command', 'command', command, (err, response) ->
+    message = req.body
+    client.remote 'maia:command', 'command', message, (err, response) ->
         console.log '[command] response =', response
         res.json response
 
