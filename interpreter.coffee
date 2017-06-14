@@ -147,14 +147,18 @@ runPhrase = ([key, args], cb) ->
 # ------------------------------------------------------------------------------
 
 client = new somata.Client
-client.remote 'maia:parser', 'parse', 'in 5 seconds tell me the price of bitcoin', (err, response) ->
-    inputs = response.evaluated
-    inspect 'parsed input list', inputs
-    runPhrase inputs, (err, results) ->
-        if err?
-            console.log "FAILED", err
-        else
-            inspect "Response", results
-            console.log respond results
-        process.exit(0)
+command = (message, cb) ->
+    client.remote 'maia:parser', 'parse', message.body, (err, response) ->
+        inputs = response.evaluated
+        inspect 'parsed input list', inputs
+        runPhrase inputs, (err, results) ->
+            if err?
+                console.log "FAILED", err
+                cb err
+            else
+                inspect "Response", results
+                body = respond results
+                cb null, body
+
+new somata.Service 'maia:command', {command}
 
