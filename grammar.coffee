@@ -6,8 +6,8 @@ module.exports = grammar = """
 %dontknow
     I didn't catch that.
     I don't understand.
-    I don't ~understand ~what_you_said .
-    Not sure ~what_you_said .
+    I don't ~understand ~what_you_said
+    Not sure ~what_you_said
     What?
     Huh?
 
@@ -24,9 +24,11 @@ module.exports = grammar = """
     what you're talking about
     what that means
 
+# Default stuff
+
 %greeting
     ~greeting $sender !
-    ~greeting .
+    ~greeting
 
 ~greeting
     Hi
@@ -36,7 +38,7 @@ module.exports = grammar = """
 
 %farewell
     ~farewell $sender !
-    ~farewell .
+    ~farewell
 
 ~farewell
     Bye 
@@ -45,7 +47,7 @@ module.exports = grammar = """
     See you later
 
 %howareyou
-    I'm ~good .
+    I'm ~good
 
 ~good
     good
@@ -56,47 +58,86 @@ module.exports = grammar = """
     perfectly ok
 
 %thanks
-    You're welcome.
-    You are ~very? welcome.
-    No, thank you.
-    My pleasure.
+    You're welcome
+    You are ~very? welcome
+    No, thank you
+    My pleasure
 
 %insult
-    Lol ok .
-    I'm sorry to hear that .
-    Bless your heart .
-    Lol ok $sender .
-    I'm sorry to hear that $sender .
-    Bless your heart $sender .
+    Lol ok
+    I'm sorry to hear that
+    Bless your heart
+    Lol ok $sender
+    I'm sorry to hear that $sender
+    Bless your heart $sender
 
 ~very
     very
     extremely
     so
 
-%setState
-    I turned the $device $state .
-    the $device is now $state .
-    $devices are now $state .
+# Intent structure
 
-%gotState
-    ~looks_like? the $device is $state .
+%response
+    ~ok? %sequence
 
-%gotTime
-    ~looks_like? the time is $time .
-    ~looks_like? it is $time .
+%sequence
+    %action
+    %action ~and %action
+    %action ~and %action ~and_last %action
+    %action ~and %action ~and %action ~and_last %action
 
-%gotPrice
-    ~looks_like? the price of $asset is ~currently? $price .
-    ~looks_like? $asset is ~currently? $price , with a 24h volume of $volume on $market .
-    ~looks_like? $asset is $price ~now? , and the 24h volume is $volume on $market .
-    ~looks_like? $asset is $price ~now? . The 24h volume on $market is $volume .
-    ~looks_like? $asset is $price ~now? .
+~and
+    and
+    , and
 
-%gotWeather
-    ~looks_like? $location is ~currently? $temperature with $conditions .
-    ~looks_like? the $location $key is ~currently? $value .
-    ~looks_like? the $key of $location is ~currently? $value .
+~and_last
+    , and
+    , and also
+    , and finally
+
+# Intent actions
+
+%action
+    %getSwitchState
+    %setSwitchState
+    %getLightState
+    %setLightState
+    %getPrice
+    %getTemperature
+    %getWeather
+
+%setSwitchState
+    I turned the $switch_name $state
+    the $switch_name is now $state
+    $switch_names are now $state
+
+%getSwitchState
+    ~looks_like? the $switch_name is $state
+
+%setLightState
+    I turned the $light_name $on_off
+    I turned $on_off the $light_name
+    the $light_name is now $color
+
+%getLightState
+    ~looks_like? the $light_name is $state
+
+%getTime
+    ~looks_like? the time is $time
+    ~looks_like? it is $time
+
+%getPrice
+    ~looks_like? the price of $asset is ~currently? $price
+    ~looks_like? $asset is ~currently? $price , with a 24h volume of $volume on $market
+    ~looks_like? $asset is $price ~now? , and the 24h volume is $volume on $market
+    ~looks_like? $asset is $price ~now? . The 24h volume on $market is $volume
+    ~looks_like? $asset is $price ~now?
+
+%getWeather
+    ~looks_like? $location is ~currently? $temperature with $conditions
+    ~looks_like? the $location $key is ~currently? $value
+    ~looks_like? the $key of $location is ~currently? $value
 
 ~looks_like
     looks like
@@ -120,4 +161,6 @@ module.exports = grammar = """
 ~ok
     ok,
     sure,
+    sounds good,
+    alright,
 """
