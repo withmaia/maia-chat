@@ -4,6 +4,8 @@ moment = require 'moment-timezone'
 moment.tz('America/Los_Angeles')
 util = require 'util'
 commands = require './commands'
+respond = require './respond'
+somata = require 'somata'
 
 wrap = (s) ->
     '[' + s + ']'
@@ -144,15 +146,6 @@ runPhrase = ([key, args], cb) ->
 
 # ------------------------------------------------------------------------------
 
-# runPhrase inputs, (err, results) ->
-#     if err?
-#         console.log "FAILED", err
-#     else
-#         console.log "Done", results
-
-respond = require './respond'
-
-somata = require 'somata'
 client = new somata.Client
 client.remote 'maia:parser', 'parse', 'in 5 seconds tell me the price of bitcoin', (err, response) ->
     inputs = response.evaluated
