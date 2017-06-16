@@ -23,8 +23,15 @@ formatThousands = (n) ->
     groups.reverse()
     return groups.join(',') + np.toFixed(2).slice(1)
 
+randomString = (len=8) ->
+    s = ''
+    while s.length < len
+        s += Math.random().toString(36).slice(2, len-s.length+2)
+    return s
+
 module.exports = {
     capitalize
     unslugify
     formatThousands
+    randomString
 }

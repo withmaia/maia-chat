@@ -7,7 +7,10 @@ commands = require './commands'
 somata = require 'somata'
 nalgene = require '../nalgene-js/src'
 {asSentence} = require '../nalgene-js/src/helpers'
-grammar = nalgene.parse require './grammar'
+fs = require 'fs'
+grammar = nalgene.parse fs.readFileSync './grammar.nlg', 'utf8'
+request = require 'request'
+{randomString} = require './helpers'
 
 CHECK_COMPARISONS_EVERY = 1000 * 60
 CHECK_TIMERS_EVERY = 1000
@@ -69,15 +72,54 @@ generateResponse = (response) ->
     console.log '[generateResponse]', body
     return body
 
-send = (err, data) ->
+sendResponse = (context, err, data) ->
     console.log '[send]', err or data
 
-sendMessage = (err, data) ->
-    if err?
-        send err
-    else
+    if !err?
         response = generateResponse data
-        send null, response
+
+    if context.callback_url?
+        sendPostResponse context, err, response
+
+    else if context.session_id?
+        sendChatResponse context, err, response
+
+sendPostResponse = (context, err, response) ->
+    if err?
+        event_type = 'error'
+    else
+        event_type = 'message'
+
+    post_body = {
+        type: event_type
+        body: err or response,
+        receiver: context.sender?.username
+    }
+    request.post {uri: context.callback_url, json: post_body}
+
+sendChatResponse = (context, err, response) ->
+    message = {
+        _id: randomString()
+        body: response
+        sender: 'maia'
+    }
+    client.remote 'maia:chat', 'sendResponse', context.session_id, message, ->
+
+# Timer %timer commands
+# ------------------------------------------------------------------------------
+
+now = -> new Date().getTime()
+
+checkTimer = (timer) ->
+    if now() >= timer.time
+        {sequence, context} = timer
+        console.log '[checkTimer] Timer done at', moment().toISOString()
+        Array.remove(timers, timer)
+        runSequence context, sequence, sendResponse.bind(null, context)
+
+timers = []
+checkTimers = -> timers.map checkTimer
+setInterval checkTimers, CHECK_TIMERS_EVERY
 
 # Comparisons for %if commands
 # ------------------------------------------------------------------------------
@@ -91,38 +133,22 @@ operatorFn = (operator) ->
         return (a, b) -> a == Math.floor b
 
 checkComparison = (comparison) ->
-    {action, operator, number, sequence} = comparison
+    {action, operator, number, sequence, callback_url} = comparison
 
-    runCommand action, (err, response) ->
+    runCommand context, action, (err, response) ->
         value = findChild('$value', response)
         if operatorFn(operator)(value, number)
             console.log '[checkComparison]', comparison, 'is true'
-            runSequence sequence, sendMessage
+            runSequence context, sequence, sendResponse.bind(null, callback_url)
             Array.remove(comparisons, comparison)
 
 comparisons = []
 checkComparisons = -> comparisons.map checkComparison
 setInterval checkComparisons, CHECK_COMPARISONS_EVERY
 
-# Timer %timer commands
 # ------------------------------------------------------------------------------
 
-now = -> new Date().getTime()
-
-checkTimer = (timer) ->
-    if now() >= timer.time
-        {sequence} = timer
-        console.log '[checkTimer] Timer done at', moment().toISOString()
-        Array.remove(timers, timer)
-        runSequence sequence, sendMessage
-
-timers = []
-checkTimers = -> timers.map checkTimer
-setInterval checkTimers, CHECK_TIMERS_EVERY
-
-# ------------------------------------------------------------------------------
-
-runIf = (args, cb) ->
+runIf = (context, args, cb) ->
     condition = findChild('%condition', args)
     sequence = findChild('%sequence', args)
 
@@ -141,7 +167,7 @@ runIf = (args, cb) ->
 
     cb null, {key: '%if', children: []}
 
-runTimer = (args, cb) ->
+runTimer = (context, args, cb) ->
     absolute_time = findChild('%absolute_time', args)
     relative_time = findChild('%relative_time', args)
     sequence = findChild('%sequence', args)
@@ -178,31 +204,31 @@ runTimer = (args, cb) ->
 
     console.log '[runTimer] Starting timer', timeout, 'at', moment().toISOString(), '...\n'
     time = now() + timeout
-    timers.push {time, sequence}
+    timers.push {time, sequence, context}
 
     from_now = moment(time).fromNow()
     cb null, {key: '%timer', children: objectToChildren {from_now}}
 
-parseArgs = (args) ->
-    inspect 'parseArgs', args
-    parsed = {}
-    for arg in args
-        parsed[arg.key.slice(1)] = arg.children[0]
-    return parsed
+argsFromChildren = (children) ->
+    inspect 'argsFromChildren', children
+    args = {}
+    for child in children
+        args[child.key.slice(1)] = child.children[0]
+    return args
 
-runCommand = ({key, children}, cb) ->
+runCommand = (context, {key, children}, cb) ->
     if command = commands[key.slice(1)]
-        args = parseArgs children
+        args = argsFromChildren children
         command args, (err, response) ->
             return cb err if err?
             cb null, objectToChildren response
     else
         cb "Unknown command #{command}"
 
-runAction = ({key, children}, cb) ->
+runAction = (context, {key, children}, cb) ->
     console.log '[runAction]', key, children
     action = children[0]
-    runCommand action, (err, response) ->
+    runCommand context, action, (err, response) ->
         if err?
             cb err
         else
@@ -210,9 +236,9 @@ runAction = ({key, children}, cb) ->
             inspect 'runAction response', response
             cb null, {key: '%action', children: [{key, children: response}]}
 
-runSequence = (args, cb) ->
+runSequence = (context, args, cb) ->
     inspect 'runSequence args', args
-    async.mapSeries args, runAction, (err, responses) ->
+    async.mapSeries args, runAction.bind(null, context), (err, responses) ->
         if err
             cb err
         else
@@ -224,10 +250,10 @@ runners =
     '%if': runIf
     '%sequence': runSequence
 
-runPhrase = ({key, children}, cb) ->
-    inspect 'runPhrase', {key, children}
+runPhrase = (context, {key, children}, cb) ->
+    inspect 'runPhrase', {key, children, context}
     if run = runners[key]
-        run children, cb
+        run context, children, cb
     else
         cb "Don't understand #{key}"
 
@@ -237,27 +263,24 @@ runPhrase = ({key, children}, cb) ->
 client = new somata.Client
 
 command = (message, cb) ->
-    send = cb
+    context = {}
+    Object.assign context, message
+    console.log '[command]', message
 
     client.remote 'maia:parser', 'parse', message.body, (err, response) ->
         if err or err = response.error
-            return sendMessage err
+            return sendResponse context, err
 
         inputs = response.parsed.children[0]
 
-        runPhrase inputs, (err, data) ->
-            if err?
-                console.log "FAILED", err
-                sendMessage err
-            else
-                inspect "Response", data
-                sendMessage null, data
+        runPhrase context, inputs, sendResponse.bind(null, context)
 
 # Test
 # c = 'please turn on the kitchen light and turn off the living room light'
 # c = 'in 7 seconds please turn on the kitchen light and turn off the living room light'
 # c = 'when the price of bitcoin is above 100 please turn on the kitchen light'
-# command {body: c}, (err, got) -> console.log err or got
+# callback_url = 'http://webhooks.nexus.dev/events/bot/kihu1tze'
+# command {body: c, callback_url, sender: {username: 'jones'}}, (err, got) -> console.log err or got
 
 new somata.Service 'maia:command', {command}
 

@@ -1,4 +1,4 @@
-polar = require 'polar'
+polar = require 'somata-socketio'
 somata = require 'somata'
 config = require './config'
 
@@ -17,6 +17,7 @@ app.get '/', (req, res) -> res.render 'index', {config}
 app.post '/command.json', (req, res) ->
     console.log '[command body]', req.body
     message = req.body
+    # TODO: Reconcile sync responses
     client.remote 'maia:command', 'command', message, (err, response) ->
         console.log '[command] response =', response
         res.json response
