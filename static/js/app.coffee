@@ -6,45 +6,51 @@ ReactCSSTransitionGroup = require 'react-addons-css-transition-group'
 KefirBus = require 'kefir-bus'
 fetch$ = require 'kefir-fetch'
 KefirCollection = require 'kefir-collection'
+somata = require 'somata-socketio-client'
+
+# Helpers
 
 capitalizeFirst = (s) -> s[0].toUpperCase() + s.slice(1)
 capitalize = (s) -> s.split(' ').map(capitalizeFirst).join(' ')
 
 unslugify = (s) -> s.split('_').join(' ')
 
-initial_message = {
-    _id: 0
-    sender: 'maia'
-    body: """
-        Hi there, I am Maia. You can call me @maia. I know how to do a few useful things, like "turn on the office light" or "turn off all the lights" or answer "what is the price of bitcoin?"
-    """
-}
+randomString = (len=8) ->
+    s = ''
+    while s.length < len
+        s += Math.random().toString(36).slice(2, len-s.length+2)
+    return s
+
+# Messages
 
 messages$ = KefirCollection([], id_key: '_id')
 sent_message$ = KefirBus()
 
 sendMessage = (m) ->
     sent_message$.emit {
-        _id: new Date().getTime()
+        _id: randomString()
         sender: 'human'
         body: m
     }
 
-postCommand = (body, cb) ->
-    fetch$ 'post', 'http://withmaia.com/command.json', {body: {body}}
-
+# TODO: Don't use pending responses as there might be multiple
+# for any given message (followups e.g. timer, condition)
 sent_message$.onValue (message) ->
     messages$.createItem message
-    response_id = new Date().getTime() + 1
-    messages$.createItem {_id: response_id, sender: 'maia'}
-    postCommand(message.body)
-        .onValue (message) ->
-            console.log '[message]', message
-            messages$.updateItem response_id, message
-        .onError (err) ->
-            message = {error: "Oh no... " + err}
+    somata.remote$('maia:chat', 'sendMessage', session_id, message)
+        .onValue -> # Sent
 
-messages$.createItem initial_message
+# Start session
+
+session_id = randomString()
+
+received_message$ = somata.subscribe$('maia:chat', 'messages:' + session_id)
+    .onValue (received) ->
+        console.log '[received]', received
+        messages$.createItem received
+
+somata.remote$('maia:chat', 'addSession', session_id).onValue (added) ->
+    console.log 'started session', added
 
 NewMessage = React.createClass
     getInitialState: ->

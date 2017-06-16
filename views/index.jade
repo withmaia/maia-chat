@@ -15,4 +15,5 @@ html
 
         script.
             window.config = !{JSON.stringify(config)}
+        script(src="#{base_url || ''}/socket.io/socket.io.js")
         script(src="#{base_url || ''}/js/app.js")
