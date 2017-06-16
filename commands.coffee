@@ -1,7 +1,16 @@
 
 module.exports =
     getPrice: ({asset}, cb) ->
-        cb null, {asset, price: 55, volume: 555, market: 'GDAX'}
+        cb null, {asset, value: 200 * Math.random(), volume: 555, market: 'GDAX'}
+
+    getTemperature: ({room_name}, cb) ->
+        cb null, {room_name, value: 20 + 70 * Math.random()}
+
+    getSwitchState: ({switch_name}, cb) ->
+        cb null, {switch_name, value: Math.random() < 0.5}
+
+    getLightState: ({light_name}, cb) ->
+        cb null, {light_name, value: Math.random() < 0.5}
 
     setVolume: ({up_down}, cb) ->
         cb null, {up_down}

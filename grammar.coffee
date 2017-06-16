@@ -79,7 +79,23 @@ module.exports = grammar = """
 # Intent structure
 
 %response
+    ~ok? %if
+    ~ok? %timer
     ~ok? %sequence
+
+%if
+    I'll wait until that happens
+    sure thing
+    I'll be on the lookout
+
+%timer
+    I'll ~do_that in $from_now
+    in $from_now I'll ~do_that
+
+~do_that
+    do that
+    see to it
+    make sure it happens
 
 %sequence
     %action
@@ -160,7 +176,5 @@ module.exports = grammar = """
 
 ~ok
     ok,
-    sure,
-    sounds good,
     alright,
 """
