@@ -213,7 +213,12 @@ argsFromChildren = (children) ->
     inspect 'argsFromChildren', children
     args = {}
     for child in children
-        args[child.key.slice(1)] = child.children[0]
+        child_key = child.key.slice(1)
+        child_value = child.children[0]
+        if child_value?.key?[0] == '@'
+            child_value = child_value.key.slice(1)
+        args[child_key] = child_value
+    inspect 'argsFromChildren args', args
     return args
 
 runCommand = (context, {key, children}, cb) ->
@@ -250,10 +255,16 @@ runners =
     '%if': runIf
     '%sequence': runSequence
 
+passthrough =
+    '%greeting': true
+    '%thanks': true
+
 runPhrase = (context, {key, children}, cb) ->
     inspect 'runPhrase', {key, children, context}
     if run = runners[key]
         run context, children, cb
+    else if passthrough[key]
+        cb null, {key, children}
     else
         cb "Don't understand #{key}"
 
@@ -276,10 +287,11 @@ command = (message, cb) ->
         runPhrase context, inputs, sendResponse.bind(null, context)
 
 # Test
-# c = 'please turn on the kitchen light and turn off the living room light'
 # c = 'in 7 seconds please turn on the kitchen light and turn off the living room light'
 # c = 'when the price of bitcoin is above 100 please turn on the kitchen light'
-# callback_url = 'http://webhooks.nexus.dev/events/bot/kihu1tze'
+# c = 'please turn on the kitchen light and turn off the living room light'
+c = 'please turn on the kitchen light'
+callback_url = 'http://webhooks.nexus.dev/events/bot/kihu1tze'
 # command {body: c, callback_url, sender: {username: 'jones'}}, (err, got) -> console.log err or got
 
 new somata.Service 'maia:command', {command}
