@@ -10,7 +10,7 @@ module.exports =
         cb null, {switch_name, value: Math.random() < 0.5}
 
     getLightState: ({light_name}, cb) ->
-        cb null, {light_name, value: Math.random() < 0.5}
+        cb null, {light_name, light_state: if Math.random() < 0.5 then 'on' else 'off'}
 
     setVolume: ({up_down}, cb) ->
         cb null, {up_down}
@@ -18,8 +18,8 @@ module.exports =
     setTemperature: ({room_name, temperature}, cb) ->
         cb null, {room_name, temperature}
 
-    setLightState: ({light_name, on_off, up_down, color}, cb) ->
-        cb null, {light_name, on_off, up_down, color}
+    setLightState: ({light_name, light_state}, cb) ->
+        cb null, {light_name, light_state}
 
     setSwitchState: ({switch_name, on_off}, cb) ->
         cb null, {switch_name, on_off}
