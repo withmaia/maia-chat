@@ -81,6 +81,8 @@
     %if
     %timer
     %sequence
+    %greeting
+    %thanks
 
 %if
     I'll wait until that happens
@@ -130,7 +132,7 @@
     ~looks_like? the $switch_name is $state
 
 %setLightState
-    I ~turned the $light_name $on_off
+    I ~turned the $light_name $light_state
     I ~turned the $light_name $up_down
     I ~turned $on_off the $light_name
     the $light_name is now $color
