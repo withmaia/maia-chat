@@ -45,6 +45,8 @@ findChild = (key, children) ->
 objectToChildren = (obj) ->
     children = []
     for key, value of trimObj obj
+        if typeof value == 'string'
+            value = value.replace(/_/g, ' ')
         children.push {key: '$' + key, children: value}
     return children
 
