@@ -6,14 +6,7 @@ client = new somata.Client
 module.exports =
     getPrice: ({asset}, cb) ->
         # cb null, {asset, value: 200 * Math.random(), volume: 555, market: 'GDAX'}
-        client.remote 'price', 'getPrice', asset, (err, response) ->
-            return cb err if err?
-
-            if response.price?
-                response.price_formatted = formatPrice response.price
-            if response.volume?
-                response.volume_formatted = formatPrice response.volume
-            cb null, response
+        client.remote 'price', 'getPrice', asset, cb
 
     getTemperature: ({room_name}, cb) ->
         cb null, {room_name, value: 20 + 70 * Math.random()}

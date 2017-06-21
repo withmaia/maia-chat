@@ -10,7 +10,7 @@ nalgene = require '../nalgene-js/src'
 fs = require 'fs'
 grammar = nalgene.parse fs.readFileSync './grammar.nlg', 'utf8'
 request = require 'request'
-{randomString} = require './helpers'
+{randomString, formatPrice} = require './helpers'
 
 CHECK_COMPARISONS_EVERY = 1000 * 60
 CHECK_TIMERS_EVERY = 1000
@@ -68,6 +68,17 @@ Array.remove = (list, item) ->
 # ------------------------------------------------------------------------------
 
 generateResponse = (response) ->
+    console.log 'response', response
+    if response.key == '%sequence'
+        for child in response.children
+            if child.key == '%action'
+                if child.children[0].key == '%getPrice'
+                    getPrice = child.children[0]
+                    console.log 'getPrice', getPrice
+                    for gc in getPrice.children
+                        if typeof gc.children == 'number'
+                            console.log 'number', gc.children
+                            gc.children = formatPrice gc.children
     context = {key: "%parsed", children: [response]}
     body = nalgene.generate grammar, '%response', context
     body = asSentence body
@@ -272,6 +283,24 @@ runPhrase = (context, {key, children}, cb) ->
         run context, children, cb
     else if passthrough[key]
         cb null, {key, children}
+    else if command = commands[key.slice(1)]
+        args = argsFromChildren children
+        command args, (err, response) ->
+            return cb err if err?
+            cb null, {
+                key: '%sequence'
+                children: [
+                    {
+                        key: '%action'
+                        children: [
+                            {
+                                key: key
+                                children: objectToChildren response
+                            }
+                        ]
+                    }
+                ]
+            }
     else
         cb "Don't understand #{key}"
 
@@ -298,9 +327,9 @@ command = (message, cb) ->
 # c = 'when the price of bitcoin is above 100 please turn on the kitchen light'
 # c = 'please turn on the kitchen light and turn off the living room light'
 # c = 'when the price of bitcoin is above 2650 turn the office light green'
-# c = 'turn all lights off'
-# callback_url = 'http://webhooks.nexus.dev/events/bot/kihu1tze'
-# command {body: c, callback_url, sender: {username: 'jones'}}, (err, got) -> console.log err or got
+c = 'what is the price of bitcoin?'
+callback_url = 'http://webhooks.nexus.dev/events/bot/kihu1tze'
+command {body: c, callback_url, sender: {username: 'jones'}}, (err, got) -> console.log err or got
 
-new somata.Service 'maia:command', {command}
+# new somata.Service 'maia:command', {command}
 
