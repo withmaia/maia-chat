@@ -327,9 +327,9 @@ command = (message, cb) ->
 # c = 'when the price of bitcoin is above 100 please turn on the kitchen light'
 # c = 'please turn on the kitchen light and turn off the living room light'
 # c = 'when the price of bitcoin is above 2650 turn the office light green'
-c = 'what is the price of bitcoin?'
-callback_url = 'http://webhooks.nexus.dev/events/bot/kihu1tze'
-command {body: c, callback_url, sender: {username: 'jones'}}, (err, got) -> console.log err or got
+# c = 'what is the price of bitcoin?'
+# callback_url = 'http://webhooks.nexus.dev/events/bot/kihu1tze'
+# command {body: c, callback_url, sender: {username: 'jones'}}, (err, got) -> console.log err or got
 
-# new somata.Service 'maia:command', {command}
+new somata.Service 'maia:command', {command}
 
