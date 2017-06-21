@@ -127,15 +127,15 @@ setInterval checkTimers, CHECK_TIMERS_EVERY
 # ------------------------------------------------------------------------------
 
 operatorFn = (operator) ->
-    if operator in ['above', 'greater than']
+    if operator == 'greater_than'
         return (a, b) -> a > b
-    else if operator in ['below', 'less than']
+    else if operator == 'less_than'
         return (a, b) -> a < b
     else
         return (a, b) -> a == Math.floor b
 
 checkComparison = (comparison) ->
-    {action, operator, number, sequence, callback_url} = comparison
+    {action, operator, number, sequence, context, callback_url} = comparison
 
     runCommand context, action, (err, response) ->
         value = findChild('$value', response)
@@ -155,7 +155,7 @@ runIf = (context, args, cb) ->
     sequence = findChild('%sequence', args)
 
     if getValue = findChild('%getValue', condition)
-        operator = findChild('$operator', condition)[0]
+        operator = findChild('%operator', condition)[0]?.key?.slice(1)
         number = findChild('$number', condition)[0]
         number = parseNumber number
         inspect 'getValue', getValue
@@ -195,8 +195,10 @@ runTimer = (context, args, cb) ->
     else if relative_time?
         number = findChild('$number', relative_time)
         number = parseNumber number.join('')
-        time_unit = findChild('$time_unit', relative_time)?[0]
+        time_unit = findChild('%time_unit', relative_time)
+        time_unit = time_unit[0].key.slice(1)
         inspect 'relative time', {number, time_unit}
+
         if time_unit == 'seconds'
             timeout = number * 1000
         else if time_unit == 'minutes'
@@ -219,8 +221,11 @@ argsFromChildren = (children) ->
         child_value = child.children[0]
         if child_value?.key?[0] == '@'
             child_value = child_value.key.slice(1)
+            args[child_key] = child_value
+        else if child_value?.key?[0] == '$'
+            child_value = argsFromChildren child.children
         args[child_key] = child_value
-    inspect 'argsFromChildren args', args
+    inspect 'argsFromChildren args =', args
     return args
 
 runCommand = (context, {key, children}, cb) ->
@@ -292,8 +297,9 @@ command = (message, cb) ->
 # c = 'in 7 seconds please turn on the kitchen light and turn off the living room light'
 # c = 'when the price of bitcoin is above 100 please turn on the kitchen light'
 # c = 'please turn on the kitchen light and turn off the living room light'
-c = 'please turn on the kitchen light'
-callback_url = 'http://webhooks.nexus.dev/events/bot/kihu1tze'
+# c = 'when the price of bitcoin is above 2650 turn the office light green'
+# c = 'turn all lights off'
+# callback_url = 'http://webhooks.nexus.dev/events/bot/kihu1tze'
 # command {body: c, callback_url, sender: {username: 'jones'}}, (err, got) -> console.log err or got
 
 new somata.Service 'maia:command', {command}
