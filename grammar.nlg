@@ -123,6 +123,7 @@
     %getWeather
     ~ok? %setSwitchState
     ~ok? %setLightState
+    ~ok? %setLightGroupState
 
 %setSwitchState
     I ~turned the $switch_name $state
@@ -137,6 +138,12 @@
     I ~turned $on_off the $light_name
     the $light_name is now $color
 
+%setLightGroupState
+    I ~turned $light_group_name $light_state
+    I ~turned $light_group_name $up_down
+    I ~turned $on_off $light_group_name
+    $light_group_name are now $color
+
 ~turned
     turned
     set
@@ -149,11 +156,11 @@
     ~looks_like? it is $time
 
 %getPrice
-    ~looks_like? the price of $asset is ~currently? $value
-    ~looks_like? $asset is ~currently? $value , with a 24h volume of $volume on $market
-    ~looks_like? $asset is $value ~now? , and the 24h volume is $volume on $market
-    ~looks_like? $asset is $value ~now? . The 24h volume on $market is $volume
-    ~looks_like? $asset is $value ~now?
+    ~looks_like? the price of $asset is ~currently? $price_formatted
+    ~looks_like? $asset is ~currently? $price_formatted , with a 24h volume of $volume_formatted on $market
+    ~looks_like? $asset is $price_formatted ~now? , and the 24h volume is $volume_formatted on $market
+    ~looks_like? $asset is $price_formatted ~now? . The 24h volume on $market is $volume_formatted
+    ~looks_like? $asset is $price_formatted ~now?
 
 %getWeather
     ~looks_like? $location is ~currently? $temperature with $conditions
