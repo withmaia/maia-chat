@@ -23,6 +23,9 @@ formatThousands = (n) ->
     groups.reverse()
     return groups.join(',') + np.toFixed(2).slice(1)
 
+formatPrice = (n) ->
+    '$' + formatThousands n
+
 randomString = (len=8) ->
     s = ''
     while s.length < len
@@ -33,5 +36,6 @@ module.exports = {
     capitalize
     unslugify
     formatThousands
+    formatPrice
     randomString
 }
