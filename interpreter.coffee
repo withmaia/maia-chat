@@ -97,6 +97,9 @@ sendResponse = (context, err, data) ->
     else if context.session_id?
         sendChatResponse context, err, response
 
+    else if context.cb?
+        context.cb err, response
+
 sendPostResponse = (context, err, response) ->
     if err?
         event_type = 'error'
@@ -313,9 +316,11 @@ command = (message, cb) ->
     context = {}
     Object.assign context, message
     console.log '[command]', message
+    context.cb = cb
 
     client.remote 'maia:parser', 'parse', message.body, (err, response) ->
         if err or err = response.error
+            console.log "ERROR", err
             return sendResponse context, err
 
         inputs = response.parsed.children[0]
