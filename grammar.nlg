@@ -40,7 +40,7 @@
     ~farewell
 
 ~farewell
-    Bye 
+    Bye
     Goodbye
     Talk to you later
     See you later
@@ -121,9 +121,9 @@
     %getPrice
     %getTemperature
     %getWeather
-    ~ok? %setSwitchState
-    ~ok? %setLightState
-    ~ok? %setLightGroupState
+    %setSwitchState
+    %setLightState
+    %setLightGroupState
 
 %setSwitchState
     I ~turned the $switch_name $state

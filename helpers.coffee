@@ -1,3 +1,5 @@
+util = require 'util'
+
 capitalizeFirst = (s) -> s[0].toUpperCase() + s.slice(1)
 capitalize = (s) -> s.split(' ').map(capitalizeFirst).join(' ')
 unslugify = (s) -> s.split('_').join(' ')
@@ -32,10 +34,32 @@ randomString = (len=8) ->
         s += Math.random().toString(36).slice(2, len-s.length+2)
     return s
 
+wrap = (s) ->
+    '[' + s + ']'
+
+inspect = (k, o) ->
+    console.log wrap(k), util.inspect o, {depth: null, colors: true}
+
+flatten = (ls) ->
+    flat = []
+    for l in ls
+        for i in l
+            flat.push i
+    return flat
+
+trimObj = (o) ->
+    for k, v of o
+        if !v?
+            delete o[k]
+    return o
+
 module.exports = {
     capitalize
     unslugify
     formatThousands
     formatPrice
     randomString
+    inspect
+    flatten
+    trimObj
 }

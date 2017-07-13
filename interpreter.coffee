@@ -10,32 +10,13 @@ nalgene = require '../nalgene-js/src'
 fs = require 'fs'
 grammar = nalgene.parse fs.readFileSync './grammar.nlg', 'utf8'
 request = require 'request'
-{randomString, formatPrice} = require './helpers'
+{randomString, formatPrice, inspect, flatten, trimObj} = require './helpers'
 
 CHECK_COMPARISONS_EVERY = 1000 * 60
 CHECK_TIMERS_EVERY = 1000
 
 # Helpers
 # ------------------------------------------------------------------------------
-
-flatten = (ls) ->
-    flat = []
-    for l in ls
-        for i in l
-            flat.push i
-    return flat
-
-wrap = (s) ->
-    '[' + s + ']'
-
-inspect = (k, o) ->
-    console.log wrap(k), util.inspect o, {depth: null, colors: true}
-
-trimObj = (o) ->
-    for k, v of o
-        if !v?
-            delete o[k]
-    return o
 
 findChild = (key, children) ->
     for child in children
@@ -70,12 +51,12 @@ Array.remove = (list, item) ->
 generateResponse = (response) ->
     console.log 'response', response
     # TODO
-    response.mapLeaves (leaf) ->
-        if typeof leaf == 'number'
-            console.log 'number', leaf
-            return formatPrice leaf
-        else
-            return leaf
+    # response.mapLeaves (leaf) ->
+    #     if typeof leaf == 'number'
+    #         console.log 'number', leaf
+    #         return formatPrice leaf
+    #     else
+    #         return leaf
     if response.key == '%sequence'
         for child in response.children
             if child.key == '%action'
@@ -124,14 +105,14 @@ sendChatResponse = (context) ->
     {error, data, parsed, message} = context
     body = error or generateResponse data
 
-    message = {
+    response = {
         error, data, parsed, body
         _id: randomString()
         type: if error then 'error' else 'message'
         sender: 'maia'
     }
-    console.log 'message', message
-    client.remote 'maia:chat', 'sendResponse', message.session_id, message, ->
+    console.log '[response]', response
+    client.remote 'maia:chat', 'sendResponse', message.session_id, response, ->
 
 # Timer %timer commands
 # ------------------------------------------------------------------------------
