@@ -1,6 +1,7 @@
 $colors
     blue: #4990E2
     purple: #515CA0
+    red: #911
 
 *
     margin: 0
@@ -59,10 +60,6 @@ a
     p + p
         margin-top: 15px
 
-.message .parsed
-    font-weight: 500
-    font-size: 13px
-
 .message .prob
     position: absolute
     font-size: 0.8rem
@@ -72,8 +69,17 @@ a
 
 .message pre
     font-family: "Menlo", "Monaco", monospace
+    font-size: 13px
+    word-break: break-word
+    white-space: normal
 
-.message.maia
+.message pre
+    display: none
+
+.message.error pre
+    display: block
+
+.message.sender-maia
     color: #fff
     background: $colors.purple
     border-top-left-radius: 0
@@ -82,7 +88,10 @@ a
         right: auto
         left: -40px
 
-.message.human
+    &.error
+        background: $colors.red
+
+.message.sender-human
     border-bottom-right-radius: 0
 
 .new-message

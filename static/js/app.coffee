@@ -8,6 +8,9 @@ fetch$ = require 'kefir-fetch'
 KefirCollection = require 'kefir-collection'
 somata = require 'somata-socketio-client'
 
+somata.connect ->
+    console.log '[connected]'
+
 # Helpers
 
 capitalizeFirst = (s) -> s[0].toUpperCase() + s.slice(1)
@@ -114,7 +117,7 @@ App = React.createClass
             >
 
             {@state.messages.map (message) =>
-                <div className={'message ' + message.sender} key={'m_' + message._id}>
+                <div className={'message ' + 'sender-' + message.sender + ' ' + message.type} key={'m_' + message._id}>
                     {if message.sender == 'maia'
                         <img className='avatar' src='/images/maia.png' />
                     else
@@ -125,15 +128,21 @@ App = React.createClass
                         <em className='pending'>...</em>
 
                     else if message.body?
-                        message.body.split('\n').map (line, li) =>
-                            <p key={'li_' + li}>
-                                {replaced = reactStringReplace line, /("[^"]+")/g, (match, mi) =>
-                                    <a key={'ma_quo_' + li + '_' + mi} onClick={@sendMessage(match)}>{match}</a>
-                                replaced = reactStringReplace replaced, /(@\w+)/g, (match, mi) =>
-                                    <a key={'ma_men_' + li + '_' + mi} onClick={@sendMessage(match)}>{match}</a>
-                                replaced
-                                }
-                            </p>
+                        <div>
+                            {message.body.split('\n').map (line, li) =>
+                                <p key={'li_' + li}>
+                                    {replaced = reactStringReplace line, /("[^"]+")/g, (match, mi) =>
+                                        <a key={'ma_quo_' + li + '_' + mi} onClick={@sendMessage(match)}>{match}</a>
+                                    replaced = reactStringReplace replaced, /(@\w+)/g, (match, mi) =>
+                                        <a key={'ma_men_' + li + '_' + mi} onClick={@sendMessage(match)}>{match}</a>
+                                    replaced
+                                    }
+                                </p>
+                            }
+                            {if parsed = message.context?.parsed
+                                <pre>{JSON.stringify parsed}</pre>
+                            }
+                        </div>
 
                     else if message.response?
                         <div>
@@ -143,6 +152,7 @@ App = React.createClass
                             </pre>
                         </div>
                     }
+
                     {if message.prob?
                         <span className='prob'>{message.prob.toFixed(2)}</span>
                     }
