@@ -71,11 +71,6 @@ a:focus {
   margin-top: 15px;
 }
 
-.message .parsed {
-  font-weight: 500;
-  font-size: 13px;
-}
-
 .message .prob {
   position: absolute;
   font-size: 0.8rem;
@@ -86,20 +81,35 @@ a:focus {
 
 .message pre {
   font-family: "Menlo", "Monaco", monospace;
+  font-size: 13px;
+  word-break: break-word;
+  white-space: normal;
 }
 
-.message.maia {
+.message pre {
+  display: none;
+}
+
+.message.error pre {
+  display: block;
+}
+
+.message.sender-maia {
   color: #fff;
   background: #515CA0;
   border-top-left-radius: 0;
 }
 
-.message.maia .avatar {
+.message.sender-maia .avatar {
   right: auto;
   left: -40px;
 }
 
-.message.human {
+.message.sender-maia.error {
+  background: #911;
+}
+
+.message.sender-human {
   border-bottom-right-radius: 0;
 }
 
