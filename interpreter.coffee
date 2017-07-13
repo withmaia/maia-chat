@@ -69,6 +69,13 @@ Array.remove = (list, item) ->
 
 generateResponse = (response) ->
     console.log 'response', response
+    # TODO
+    response.mapLeaves (leaf) ->
+        if typeof leaf == 'number'
+            console.log 'number', leaf
+            return formatPrice leaf
+        else
+            return leaf
     if response.key == '%sequence'
         for child in response.children
             if child.key == '%action'
@@ -86,40 +93,45 @@ generateResponse = (response) ->
     return body
 
 sendResponse = (context, err, data) ->
-    console.log '[send]', err or data
+    console.log '[sendResponse]', err or data
+    context.error = err
+    context.data = data
 
-    if !err?
-        response = generateResponse data
+    if context.message?.callback_url?
+        sendPostResponse context
 
-    if context.callback_url?
-        sendPostResponse context, err, response
-
-    else if context.session_id?
-        sendChatResponse context, err, response
+    else if context.message?.session_id?
+        sendChatResponse context
 
     else if context.cb?
-        context.cb err, response
+        context.cb err, context
 
-sendPostResponse = (context, err, response) ->
-    if err?
-        event_type = 'error'
-    else
-        event_type = 'message'
+sendPostResponse = (context) ->
+    console.log '[sendPostResponse]', context
+    {error, data, parsed, message} = context
+    body = error or generateResponse data
 
     post_body = {
-        type: event_type
-        body: err or response,
-        receiver: context.sender?.username
+        error, data, parsed, body,
+        type: if error then 'error' else 'message'
+        receiver: message.sender?.username
     }
-    request.post {uri: context.callback_url, json: post_body}
+    console.log 'post_body', post_body
+    request.post {uri: message.callback_url, json: post_body}
 
-sendChatResponse = (context, err, response) ->
+sendChatResponse = (context) ->
+    console.log '[sendChatResponse]', context
+    {error, data, parsed, message} = context
+    body = error or generateResponse data
+
     message = {
+        error, data, parsed, body
         _id: randomString()
-        body: response
+        type: if error then 'error' else 'message'
         sender: 'maia'
     }
-    client.remote 'maia:chat', 'sendResponse', context.session_id, message, ->
+    console.log 'message', message
+    client.remote 'maia:chat', 'sendResponse', message.session_id, message, ->
 
 # Timer %timer commands
 # ------------------------------------------------------------------------------
@@ -249,7 +261,7 @@ runCommand = (context, {key, children}, cb) ->
             return cb err if err?
             cb null, objectToChildren response
     else
-        cb "Unknown command #{command}"
+        cb "Unknown command: #{key}"
 
 runAction = (context, {key, children}, cb) ->
     console.log '[runAction]', key, children
@@ -305,7 +317,7 @@ runPhrase = (context, {key, children}, cb) ->
                 ]
             }
     else
-        cb "Don't understand #{key}"
+        cb "No handler for #{key}"
 
 # Running service
 # ------------------------------------------------------------------------------
@@ -314,7 +326,7 @@ client = new somata.Client
 
 command = (message, cb) ->
     context = {}
-    Object.assign context, message
+    Object.assign context, {message}
     console.log '[command]', message
     context.cb = cb
 
@@ -324,6 +336,7 @@ command = (message, cb) ->
             return sendResponse context, err
 
         inputs = response.parsed.children[0]
+        context.parsed = response.parsed
 
         runPhrase context, inputs, sendResponse.bind(null, context)
 
