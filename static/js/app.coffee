@@ -78,7 +78,7 @@ NewMessage = React.createClass
 
     render: ->
         <form className='new-message' onSubmit=@sendMessage>
-            <ReactContenteditable html=@state.body onChange=@onChange onKeyDown=@onKeyDown ref='input' />
+            <input type='text' value=@state.body onChange=@onChange onKeyDown=@onKeyDown ref='input' />
             <button onClick=@sendMessage>Send</button>
         </form>
 
