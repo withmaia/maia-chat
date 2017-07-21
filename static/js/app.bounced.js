@@ -33321,8 +33321,9 @@ NewMessage = React.createClass({
     return React.createElement("form", {
       "className": 'new-message',
       "onSubmit": this.sendMessage
-    }, React.createElement(ReactContenteditable, {
-      "html": this.state.body,
+    }, React.createElement("input", {
+      "type": 'text',
+      "value": this.state.body,
       "onChange": this.onChange,
       "onKeyDown": this.onKeyDown,
       "ref": 'input'

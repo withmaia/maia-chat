@@ -129,8 +129,10 @@ a:focus {
   right: -40px;
 }
 
-.new-message [contenteditable] {
+.new-message [contenteditable],
+.new-message input[type=text] {
   -webkit-appearance: none;
+  background: transparent;
   font: inherit;
   outline: none;
   border: none;
