@@ -1,8 +1,26 @@
 {
   "name": "maia-ui",
   "scripts": {
+    "restart": "pm2 restart package.json",
     "bounce": "metaserve --bounce /js/app.js && metaserve --bounce /css/app.css"
   },
+  "apps": [
+    {
+      "name": "maia:api",
+      "script": "server.coffee",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
+    },
+    {
+      "name": "maia:chat",
+      "script": "chat.coffee",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
+    },
+    {
+      "name": "maia:interpreter",
+      "script": "interpreter.coffee",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
+    }
+  ],
   "dependencies": {
     "kefir": "^3.7.1",
     "kefir-bus": "^2.2.1",
